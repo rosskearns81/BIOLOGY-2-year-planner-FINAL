@@ -1,0 +1,1977 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AQA Biology Planner</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Font for better aesthetics -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        /* Custom scrollbar for better UI inside modals */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #d1d5db;
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #9ca3af;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+    <div id="root"></div>
+
+    <script type="text/babel" data-type="module">
+        import React, { useState, useEffect, useMemo } from 'https://esm.sh/react@18.2.0';
+        import { createRoot } from 'https://esm.sh/react-dom@18.2.0/client';
+        import { 
+            BookOpen, Calendar as CalendarIcon, Clock, CheckCircle2, BarChart3, Settings, 
+            BrainCircuit, Microscope, FileText, ChevronLeft, ChevronRight, Target, Plus, 
+            Trash2, Save, AlertCircle, Sun, Moon, Coffee, Check, TrendingUp, Activity, 
+            Award, Medal, Zap, FlaskConical, PenTool, Brain, Star, Layers, Palmtree, 
+            Trophy, CheckSquare, Info, X, ClipboardList, Smile, Meh, Frown, MessageSquare, 
+            HelpCircle, Calculator, Dna, Leaf, Lock, Download, Upload 
+        } from 'https://esm.sh/lucide-react@0.263.1';
+
+        // --- DATA & RESEARCH CONTENT ---
+
+        const PLC_DATA = {
+            "Topic 1: Biological Molecules": [
+                { 
+                    section: "Monomers and polymers", 
+                    objectives: [
+                        "Monomers are the smaller units from which larger molecules are made.",
+                        "Polymers are molecules made from a large number of monomers joined together.",
+                        "Monosaccharides, amino acids and nucleotides are examples of monomers.",
+                        "A condensation reaction joins two molecules together with the formation of a chemical bond and involves the elimination of a molecule of water.",
+                        "A hydrolysis reaction breaks a chemical bond between two molecules and involves the use of a water molecule."
+                    ] 
+                },
+                { 
+                    section: "Carbohydrates", 
+                    objectives: [
+                        "Monosaccharides (glucose, galactose, fructose) are the monomers from which larger carbohydrates are made.",
+                        "A condensation reaction between two monosaccharides forms a glycosidic bond.",
+                        "Disaccharides: maltose (glucose + glucose), sucrose (glucose + fructose), lactose (glucose + galactose).",
+                        "Isomers of glucose: alpha-glucose and beta-glucose structures.",
+                        "Polysaccharides: glycogen and starch (alpha-glucose), cellulose (beta-glucose).",
+                        "Structure and functions of glycogen, starch and cellulose in animal/plant cells.",
+                        "Biochemical tests: Benedict's solution (reducing/non-reducing sugars) and iodine/potassium iodide (starch)."
+                    ] 
+                },
+                { 
+                    section: "Lipids", 
+                    objectives: [
+                        "Triglycerides and phospholipids are two groups of lipid.",
+                        "Triglycerides: condensation of one glycerol and three fatty acids (ester bond).",
+                        "Fatty acids: R-group may be saturated or unsaturated.",
+                        "Phospholipids: one fatty acid of a triglyceride is substituted by a phosphate-containing group.",
+                        "Different properties of triglycerides and phospholipids related to their structures.",
+                        "Biochemical test: Emulsion test for lipids."
+                    ] 
+                },
+                { 
+                    section: "Proteins", 
+                    objectives: [
+                        "Amino acids are monomers (NH2, COOH, R group). 20 common amino acids differ by side group.",
+                        "Condensation forms peptide bonds. Dipeptides and polypeptides.",
+                        "Primary structure: sequence of amino acids.",
+                        "Secondary structure: hydrogen bonds (alpha-helix, beta-pleated sheet).",
+                        "Tertiary structure: disulfide bridges, ionic bonds, hydrogen bonds.",
+                        "Quaternary structure: multiple polypeptide chains/prosthetic groups.",
+                        "Biochemical test: Biuret test for proteins."
+                    ] 
+                },
+                { 
+                    section: "Enzymes", 
+                    objectives: [
+                        "Enzymes lower activation energy. Induced-fit model of enzyme action.",
+                        "Specificity: tertiary structure of active site complementary to substrate (E-S complex).",
+                        "Factors affecting rate: Enzyme concentration, Substrate concentration.",
+                        "Factors affecting rate: pH, Temperature (denaturation).",
+                        "Factors affecting rate: Competitive and Non-competitive inhibitors."
+                    ] 
+                },
+                { 
+                    section: "Nucleic acids", 
+                    objectives: [
+                        "DNA and RNA are information-carrying molecules. Ribosomes are formed from RNA and proteins.",
+                        "Nucleotides: pentose, nitrogen-containing base, phosphate group.",
+                        "DNA nucleotides: deoxyribose, phosphate, base (A, C, G, T).",
+                        "RNA nucleotides: ribose, phosphate, base (A, C, G, U).",
+                        "Condensation forms phosphodiester bonds.",
+                        "DNA structure: double helix, two polynucleotide chains, hydrogen bonds, specific base pairing.",
+                        "RNA structure: relatively short polynucleotide chain."
+                    ] 
+                },
+                { 
+                    section: "DNA replication", 
+                    objectives: [
+                        "Semi-conservative replication ensures genetic continuity.",
+                        "Process: DNA helicase unwinds double helix/breaks H-bonds.",
+                        "Process: Free nucleotides bind to exposed bases (complementary base pairing).",
+                        "Process: DNA polymerase joins nucleotides (condensation reaction)."
+                    ] 
+                },
+                { 
+                    section: "ATP", 
+                    objectives: [
+                        "ATP structure: ribose, adenine, three phosphate groups.",
+                        "Hydrolysis: ATP + H2O -> ADP + Pi (catalysed by ATP hydrolase). Energy release.",
+                        "Phosphorylation: Pi released can make other compounds more reactive.",
+                        "Resynthesis: ADP + Pi -> ATP (catalysed by ATP synthase) during respiration/photosynthesis."
+                    ] 
+                },
+                { 
+                    section: "Water & Inorganic Ions", 
+                    objectives: [
+                        "Water properties: Metabolite, Solvent, High heat capacity (buffer), Large latent heat of vaporisation (cooling), Cohesion.",
+                        "Hydrogen ions (pH control).",
+                        "Iron ions (haemoglobin component).",
+                        "Sodium ions (co-transport of glucose/amino acids).",
+                        "Phosphate ions (DNA, RNA, ATP components)."
+                    ] 
+                }
+            ],
+            "Topic 2: Cells": [
+                { 
+                    section: "Cell structure", 
+                    objectives: [
+                        "Structure of eukaryotic cells: cell-surface membrane, nucleus, mitochondria, chloroplasts, Golgi, lysosomes, ribosomes, ER, cell wall, vacuole.",
+                        "Specialised cells organised into tissues, tissues into organs, organs into systems.",
+                        "Structure of prokaryotic cells: cytoplasm, ribosome, no nucleus (circular DNA), murein cell wall, plasmids, capsule, flagella.",
+                        "Structure of viruses: acellular, genetic material, capsid, attachment protein.",
+                        "Microscopes: Optical vs Electron (TEM/SEM). Principles and limitations.",
+                        "Magnification = size of image / size of real object. Resolution.",
+                        "Cell fractionation and ultracentrifugation to separate organelles."
+                    ] 
+                },
+                { 
+                    section: "All cells arise from other cells", 
+                    objectives: [
+                        "Cell cycle: Interphase (G1, S, G2) and Division.",
+                        "Mitosis: Prophase, Metaphase, Anaphase, Telophase. Role of spindle fibres.",
+                        "Cytokinesis: division of cytoplasm.",
+                        "Significance of mitosis: growth, repair, uncontrolled division (cancer/tumours).",
+                        "Binary fission in prokaryotic cells.",
+                        "Viral replication (injection of nucleic acid, host cell replication)."
+                    ] 
+                },
+                { 
+                    section: "Transport across cell membranes", 
+                    objectives: [
+                        "Fluid-mosaic model of membrane structure. Components: phospholipids, proteins, glycoproteins, glycolipids, cholesterol.",
+                        "Simple diffusion and Facilitated diffusion (channel/carrier proteins).",
+                        "Osmosis (water potential).",
+                        "Active transport (carrier proteins, ATP hydrolysis).",
+                        "Co-transport: absorption of sodium ions and glucose by cells lining the mammalian ileum.",
+                        "Adaptations for rapid transport (surface area, number of proteins)."
+                    ] 
+                },
+                { 
+                    section: "Cell recognition and the immune system", 
+                    objectives: [
+                        "Antigens: identification of pathogens, non-self cells, toxins, abnormal cells.",
+                        "Phagocytosis of pathogens.",
+                        "Cellular response: T lymphocytes (helper T cells, cytotoxic T cells).",
+                        "Humoral response: B lymphocytes, clonal selection, antibodies.",
+                        "Antibody structure and antigen-antibody complexes (agglutination).",
+                        "Vaccines and herd immunity. Active vs Passive immunity.",
+                        "HIV structure and replication. AIDS symptoms.",
+                        "Monoclonal antibodies: targeting medication, medical diagnosis.",
+                        "ELISA test."
+                    ] 
+                }
+            ],
+            "Topic 3: Exchange": [
+                { 
+                    section: "Exchange surfaces", 
+                    objectives: [
+                        "Surface area to volume ratio relationship with metabolic rate and size.",
+                        "Adaptations for exchange: Gas exchange in single-celled organisms, insects (tracheal system), fish (gills, counter-current), plants (mesophyll, stomata).",
+                        "Structural compromises: Xerophytic plants and terrestrial insects limiting water loss.",
+                        "Human gas exchange: Gross structure of lungs. Alveolar epithelium adaptations.",
+                        "Ventilation mechanism (diaphragm, intercostal muscles). Pulmonary ventilation rate calculation.",
+                        "Risk factors for lung disease."
+                    ] 
+                },
+                { 
+                    section: "Digestion and absorption", 
+                    objectives: [
+                        "Digestion of carbohydrates (amylases, membrane-bound disaccharidases).",
+                        "Digestion of lipids (lipase, bile salts, emulsification, micelles).",
+                        "Digestion of proteins (endopeptidases, exopeptidases, membrane-bound dipeptidases).",
+                        "Mechanisms for absorption of amino acids and monosaccharides (co-transport).",
+                        "Role of micelles in lipid absorption."
+                    ] 
+                },
+                { 
+                    section: "Mass transport in animals", 
+                    objectives: [
+                        "Haemoglobin: quaternary structure, loading/unloading of oxygen.",
+                        "Oxyhaemoglobin dissociation curves. Bohr effect (CO2 concentration).",
+                        "Circulatory system: Double circulation. Coronary arteries.",
+                        "Heart structure. Cardiac cycle (pressure/volume changes).",
+                        "Structure and function of arteries, arterioles, veins, capillaries.",
+                        "Tissue fluid formation and return."
+                    ] 
+                },
+                { 
+                    section: "Mass transport in plants", 
+                    objectives: [
+                        "Xylem: transport of water/ions. Cohesion-tension theory.",
+                        "Phloem: transport of organic substances. Mass flow hypothesis.",
+                        "Evidence from tracers and ringing experiments."
+                    ] 
+                }
+            ],
+            "Topic 4: Genetics & Diversity": [
+                { 
+                    section: "DNA, genes and chromosomes", 
+                    objectives: [
+                        "DNA in prokaryotes (short, circular, no histones) vs eukaryotes (long, linear, histone-associated).",
+                        "Mitochondrial and chloroplast DNA.",
+                        "Gene: base sequence coding for polypeptide or functional RNA. Locus.",
+                        "Genetic code: universal, non-overlapping, degenerate. Triplets.",
+                        "Non-coding DNA: multiple repeats between genes, introns within genes (exons code)."
+                    ] 
+                },
+                { 
+                    section: "DNA and protein synthesis", 
+                    objectives: [
+                        "Genome and Proteome definitions.",
+                        "Transcription: production of mRNA from DNA. RNA polymerase. Splicing (eukaryotes).",
+                        "Translation: production of polypeptides. Role of ribosomes, tRNA, ATP.",
+                        "Relating base sequences (DNA/mRNA) to amino acid sequences."
+                    ] 
+                },
+                { 
+                    section: "Mutation & Meiosis", 
+                    objectives: [
+                        "Gene mutations: substitution, deletion. Mutagenic agents.",
+                        "Chromosome mutations: non-disjunction.",
+                        "Meiosis: production of haploid gametes. Two nuclear divisions.",
+                        "Sources of variation: Crossing over, Independent segregation, Random fertilisation."
+                    ] 
+                },
+                { 
+                    section: "Genetic diversity & Adaptation", 
+                    objectives: [
+                        "Genetic diversity: number of different alleles of genes in a population.",
+                        "Natural selection: random mutation -> new allele -> advantage -> reproductive success -> inheritance -> frequency increase.",
+                        "Types of selection: Directional (e.g., antibiotic resistance) and Stabilising (e.g., birth weights).",
+                        "Adaptations: Anatomical, Physiological, Behavioural."
+                    ] 
+                },
+                { 
+                    section: "Biodiversity and Taxonomy", 
+                    objectives: [
+                        "Species definition (fertile offspring). Courtship behaviour.",
+                        "Phylogenetic classification: Hierarchy (Domain to Species). No overlap.",
+                        "Biodiversity: Species richness vs Index of diversity.",
+                        "Farming practices: balance between conservation and yield.",
+                        "Investigating diversity: DNA sequence, mRNA sequence, Amino acid sequence, Immunological comparisons."
+                    ] 
+                }
+            ],
+            "Topic 5: Energy Transfers": [
+                { 
+                    section: "Photosynthesis", 
+                    objectives: [
+                        "Light-dependent reaction: Photoionisation, Photolysis, Chemiosmosis (ATP/NADPH production).",
+                        "Light-independent reaction (Calvin Cycle): RuBP, GP, TP, regeneration of RuBP. Role of Rubisco.",
+                        "Limiting factors of photosynthesis."
+                    ] 
+                },
+                { 
+                    section: "Respiration", 
+                    objectives: [
+                        "Glycolysis: phosphorylation of glucose, oxidation to pyruvate. Net ATP/NADH.",
+                        "Anaerobic respiration: pyruvate to ethanol or lactate.",
+                        "Aerobic respiration: Link reaction (AcetylCoA), Krebs cycle (oxidation, decarboxylation, ATP/NADH/FADH).",
+                        "Oxidative phosphorylation: Electron transfer chain, chemiosmosis, role of oxygen."
+                    ] 
+                },
+                { 
+                    section: "Energy and ecosystems", 
+                    objectives: [
+                        "Biomass and Calorimetry.",
+                        "Gross Primary Production (GPP) and Net Primary Production (NPP). NPP = GPP - R.",
+                        "Net production of consumers: N = I - (F + R).",
+                        "Energy transfer efficiency between trophic levels.",
+                        "Farming practices to increase efficiency."
+                    ] 
+                },
+                { 
+                    section: "Nutrient cycles", 
+                    objectives: [
+                        "Nitrogen cycle: Ammonification, Nitrification, Nitrogen Fixation, Denitrification. Role of Saprobionts/Bacteria.",
+                        "Phosphorus cycle.",
+                        "Role of mycorrhizae.",
+                        "Fertilisers (natural/artificial) and Eutrophication."
+                    ] 
+                }
+            ],
+            "Topic 6: Response": [
+                { 
+                    section: "Stimuli and response", 
+                    objectives: [
+                        "Survival responses: Taxes and Kineses.",
+                        "Plant growth factors: IAA. Phototropism and Gravitropism.",
+                        "Simple reflex arc."
+                    ] 
+                },
+                { 
+                    section: "Receptors", 
+                    objectives: [
+                        "Pacinian corpuscle: Generator potential, stretch-mediated sodium channels.",
+                        "Human Eye: Rods vs Cones (visual acuity, sensitivity, summation, pigments)."
+                    ] 
+                },
+                { 
+                    section: "Nervous coordination", 
+                    objectives: [
+                        "Resting potential (Na+/K+ pump).",
+                        "Action potential (Depolarisation, Repolarisation, Hyperpolarisation). All-or-nothing.",
+                        "Refractory period.",
+                        "Factors affecting speed: Myelination (Saltatory conduction), Axon diameter, Temperature.",
+                        "Synaptic transmission: Cholinergic synapse, unidirectionality, summation (temporal/spatial), inhibition."
+                    ] 
+                },
+                { 
+                    section: "Muscles", 
+                    objectives: [
+                        "Antagonistic pairs.",
+                        "Myofibril structure: Sarcomere, Actin, Myosin.",
+                        "Sliding filament theory: Calcium ions, Tropomyosin, ATP role.",
+                        "Phosphocreatine.",
+                        "Slow and Fast skeletal muscle fibres."
+                    ] 
+                },
+                { 
+                    section: "Homeostasis", 
+                    objectives: [
+                        "Principles: Negative feedback. Control of Temperature and pH.",
+                        "Control of Blood Glucose: Insulin, Glucagon, Adrenaline. Second messenger model. Type I/II Diabetes.",
+                        "Control of Blood Water Potential: Kidney structure (Nephron), Ultrafiltration, Selective reabsorption, Loop of Henle, ADH."
+                    ] 
+                }
+            ],
+            "Topic 7: Genetics & Ecosystems": [
+                { 
+                    section: "Inheritance", 
+                    objectives: [
+                        "Genotype, Phenotype, Homozygous, Heterozygous.",
+                        "Alleles: Dominant, Recessive, Codominant.",
+                        "Monohybrid and Dihybrid crosses.",
+                        "Sex-linkage, Autosomal linkage, Epistasis.",
+                        "Chi-squared test."
+                    ] 
+                },
+                { 
+                    section: "Populations", 
+                    objectives: [
+                        "Gene pool, Allele frequency.",
+                        "Hardy-Weinberg principle and equation."
+                    ] 
+                },
+                { 
+                    section: "Evolution and Speciation", 
+                    objectives: [
+                        "Variation: Mutation, Meiosis, Random fertilisation.",
+                        "Natural selection types: Stabilising, Directional, Disruptive.",
+                        "Speciation: Allopatric (geographical isolation) and Sympatric (reproductive isolation).",
+                        "Genetic drift."
+                    ] 
+                },
+                { 
+                    section: "Populations in ecosystems", 
+                    objectives: [
+                        "Abiotic and Biotic factors. Niche. Carrying capacity.",
+                        "Estimation of population size: Quadrats, Transects, Mark-Release-Recapture.",
+                        "Succession: Primary succession, Pioneer species, Climax community.",
+                        "Conservation and conflict with human needs."
+                    ] 
+                }
+            ],
+            "Topic 8: Gene Expression": [
+                { 
+                    section: "Mutations and Gene Expression", 
+                    objectives: [
+                        "Gene mutations: Addition, Deletion, Substitution, Inversion, Duplication, Translocation.",
+                        "Stem cells: Totipotent, Pluripotent, Multipotent, Unipotent. iPS cells.",
+                        "Regulation of transcription: Transcription factors. Oestrogen.",
+                        "Epigenetics: Methylation of DNA, Acetylation of Histones.",
+                        "RNA interference (RNAi).",
+                        "Cancer: Benign vs Malignant. Oncogenes and Tumour Suppressor Genes."
+                    ] 
+                },
+                { 
+                    section: "Genome projects and Technologies", 
+                    objectives: [
+                        "Sequencing genomes and proteomes.",
+                        "Recombinant DNA technology: Reverse transcriptase, Restriction enzymes, Gene machine.",
+                        "In vivo cloning: Vectors, Promoters, Marker genes.",
+                        "In vitro cloning: Polymerase Chain Reaction (PCR).",
+                        "DNA probes and Hybridisation (screening/counselling).",
+                        "Genetic fingerprinting: VNTRs, Gel electrophoresis."
+                    ] 
+                }
+            ],
+            "Required Practicals": [
+                {
+                    section: "RP1: Enzyme Rate",
+                    objectives: [
+                        "Use apparatus to record quantitative measurements (mass, time, volume, temperature, pH).",
+                        "Control variables (temperature, pH, enzyme/substrate concentration).",
+                        "Calculate rate of reaction (1/time or amount/time).",
+                        "Draw tangents to calculate initial rate of reaction."
+                    ]
+                },
+                {
+                    section: "RP2: Mitosis Root Tip",
+                    objectives: [
+                        "Prepare stained squashes of cells from plant root tips (fixation, staining, squashing).",
+                        "Use optical microscope at high power (focusing, lighting).",
+                        "Identify mitotic stages (Prophase, Metaphase, Anaphase, Telophase).",
+                        "Calculate Mitotic Index (cells in mitosis / total cells)."
+                    ]
+                },
+                {
+                    section: "RP3: Water Potential",
+                    objectives: [
+                        "Produce a dilution series of a solute to produce different concentrations.",
+                        "Control variables (surface area of tissue, time, temperature).",
+                        "Plot a calibration curve (change in mass vs concentration).",
+                        "Determine water potential from the x-intercept."
+                    ]
+                },
+                {
+                    section: "RP4: Membrane Permeability",
+                    objectives: [
+                        "Investigate effect of variables (temperature/alcohol) on membrane structure.",
+                        "Use a colorimeter to measure absorbance/transmission.",
+                        "Control variables (volume of solvent, washing beetroot, time).",
+                        "Plot and interpret graphs of absorbance vs independent variable."
+                    ]
+                },
+                {
+                    section: "RP5: Dissection",
+                    objectives: [
+                        "Safely use instruments (scalpel, scissors, seekers) for dissection.",
+                        "Identify key structures in heart (valves, chambers) or plant tissue.",
+                        "Produce scientific drawings with labels, scale bars, and no sketching/shading."
+                    ]
+                },
+                {
+                    section: "RP6: Aseptic Technique",
+                    objectives: [
+                        "Use aseptic techniques: Bunsen burner flame, sterile loops, minimising opening of lids.",
+                        "Spread plating or streak plating on agar.",
+                        "Measure zone of inhibition (area of circle = πr²).",
+                        "Identify variables influencing bacterial growth."
+                    ]
+                },
+                {
+                    section: "RP7: Chromatography",
+                    objectives: [
+                        "Extract pigments from leaves.",
+                        "Set up chromatography tank (solvent level, origin line).",
+                        "Calculate Rf values (distance moved by spot / distance moved by solvent).",
+                        "Identify pigments by comparing Rf values to standards."
+                    ]
+                },
+                {
+                    section: "RP8: Dehydrogenase Activity",
+                    objectives: [
+                        "Isolate chloroplasts via centrifugation.",
+                        "Use a redox indicator (e.g., DCPIP) to measure dehydrogenase activity.",
+                        "Investigate effect of light intensity or weedkiller on photosynthesis.",
+                        "Control variables (temperature, source of chloroplasts)."
+                    ]
+                },
+                {
+                    section: "RP9: Respiration Rate",
+                    objectives: [
+                        "Use a respirometer to measure oxygen uptake or CO2 production.",
+                        "Use a redox indicator (e.g., Methylene Blue) for respiration in yeast.",
+                        "Control variables (temperature, equilibration time).",
+                        "Calculate rate of respiration."
+                    ]
+                },
+                {
+                    section: "RP10: Animal Movement",
+                    objectives: [
+                        "Use a choice chamber or maze to investigate taxes or kineses.",
+                        "Ethical handling of organisms (woodlice/maggots).",
+                        "Use Chi-squared test to determine significance of results.",
+                        "Observe turning behaviour or speed of movement."
+                    ]
+                },
+                {
+                    section: "RP11: Glucose Calibration",
+                    objectives: [
+                        "Create a serial dilution of glucose.",
+                        "Perform quantitative Benedict's test (heat, filter, colorimeter).",
+                        "Produce a calibration curve of absorbance vs glucose concentration.",
+                        "Determine concentration of glucose in an 'unknown' (urine) sample."
+                    ]
+                },
+                {
+                    section: "RP12: Fieldwork",
+                    objectives: [
+                        "Use random sampling (quadrats) to estimate population size/abundance.",
+                        "Use systematic sampling (belt transects) to investigate distribution across a gradient.",
+                        "Use Mark-Release-Recapture technique for motile organisms.",
+                        "Calculate Species Richness and Index of Diversity."
+                    ]
+                }
+            ],
+            "Maths Skills": [
+                {
+                    section: "Arithmetic and Numerical Computation",
+                    objectives: [
+                        "Recognise and use appropriate units (e.g. mm³ to cm³).",
+                        "Recognise and use expressions in decimal and standard form.",
+                        "Use ratios, fractions and percentages (e.g. % yield, surface area to volume ratio).",
+                        "Estimate results.",
+                        "Use calculators to find and use power, exponential and logarithmic functions."
+                    ]
+                },
+                {
+                    section: "Handling Data",
+                    objectives: [
+                        "Use an appropriate number of significant figures.",
+                        "Find arithmetic means.",
+                        "Construct and interpret frequency tables, bar charts and histograms.",
+                        "Understand simple probability.",
+                        "Understand the principles of sampling as applied to scientific data.",
+                        "Understand the terms mean, median and mode.",
+                        "Use a scatter diagram to identify a correlation between two variables.",
+                        "Make order of magnitude calculations.",
+                        "Select and use a statistical test: Chi-squared, Student's t-test, Correlation coefficient.",
+                        "Understand measures of dispersion, including standard deviation and range.",
+                        "Identify uncertainties in measurements and calculate percentage error."
+                    ]
+                },
+                {
+                    section: "Algebra",
+                    objectives: [
+                        "Understand and use the symbols: =, <, <<, >>, >, ∝, ~.",
+                        "Change the subject of an equation.",
+                        "Substitute numerical values into algebraic equations using appropriate units.",
+                        "Solve algebraic equations.",
+                        "Use logarithms in relation to quantities that range over several orders of magnitude (e.g. bacterial growth)."
+                    ]
+                },
+                {
+                    section: "Graphs",
+                    objectives: [
+                        "Translate information between graphical, numerical and algebraic forms.",
+                        "Plot two variables from experimental or other data.",
+                        "Understand that y = mx + c represents a linear relationship.",
+                        "Determine the intercept of a graph.",
+                        "Calculate rate of change from a graph showing a linear relationship.",
+                        "Draw and use the slope of a tangent to a curve as a measure of rate of change."
+                    ]
+                },
+                {
+                    section: "Geometry and Trigonometry",
+                    objectives: [
+                        "Calculate the circumferences, surface areas and volumes of regular shapes (circle, rectangular prisms, cylindrical prisms, spheres)."
+                    ]
+                }
+            ]
+        };
+
+        const TOPICS = {
+            YEAR_1: [
+                { id: 'y1-1', code: '3.1.1-2', name: 'Carbohydrates', focus: 'Monomers, Starch, Glycogen, Cellulose' },
+                { id: 'y1-2', code: '3.1.3', name: 'Lipids', focus: 'Triglycerides, Phospholipids, Emulsion Test' },
+                { id: 'y1-3', code: '3.1.4.1', name: 'Proteins', focus: 'Amino Acids, Structure (1°, 2°, 3°, 4°)' },
+                { id: 'y1-4', code: '3.1.4.2', name: 'Enzymes', focus: 'Induced Fit, Inhibition, Rate Factors (RP1)' },
+                { id: 'y1-5', code: '3.1.5', name: 'Nucleic Acids', focus: 'DNA/RNA Structure, Semi-conservative Rep.' },
+                { id: 'y1-6', code: '3.1.6-8', name: 'ATP, Water & Ions', focus: 'Hydrolysis/Condensation, Specific Heat, Iron/Sodium' },
+                { id: 'y1-7', code: '3.2.1.1-2', name: 'Cell Structure', focus: 'Eukaryotic vs Prokaryotic, Virus Structure' },
+                { id: 'y1-8', code: '3.2.1.3', name: 'Microscopy & Methods', focus: 'Magnification, Resolution, Fractionation' },
+                { id: 'y1-9', code: '3.2.2', name: 'Cell Division', focus: 'Mitosis Stages, Binary Fission, Cancer (RP2)' },
+                { id: 'y1-10', code: '3.2.3', name: 'Transport: Diffusion', focus: 'Simple/Facilitated Diffusion, Osmosis (RP3)' },
+                { id: 'y1-11', code: '3.2.3', name: 'Transport: Active', focus: 'Active Transport, Co-Transport (Ileum), (RP4)' },
+                { id: 'y1-12', code: '3.2.4.1', name: 'Immunity: Cellular', focus: 'Phagocytosis, Antigen Presentation, T-Cells' },
+                { id: 'y1-13', code: '3.2.4.2', name: 'Immunity: Humoral', focus: 'B-Cells, Antibodies, Vaccines, HIV/ELISA' },
+                { id: 'y1-14', code: '3.3.1-2', name: 'Exchange: Fish & Insects', focus: 'SA:V Ratio, Counter-Current, Tracheae' },
+                { id: 'y1-15', code: '3.3.2', name: 'Exchange: Humans', focus: 'Lungs, Alveoli, Ventilation Mechanism' },
+                { id: 'y1-16', code: '3.3.3', name: 'Digestion', focus: 'Enzymes (Amylase/Lipase), Absorption' },
+                { id: 'y1-17', code: '3.3.4.1', name: 'Mass Transport: Blood', focus: 'Haemoglobin, Oxy-Dissociation Curves' },
+                { id: 'y1-18', code: '3.3.4.1', name: 'Circulatory System', focus: 'Heart Structure, Cardiac Cycle, Vessels (RP5)' },
+                { id: 'y1-19', code: '3.3.4.2', name: 'Plant Transport', focus: 'Xylem (Cohesion-Tension), Phloem (Mass Flow)' },
+                { id: 'y1-20', code: '3.4.1', name: 'DNA & Chromosomes', focus: 'Genes, Loci, Introns/Exons, Histones' },
+                { id: 'y1-21', code: '3.4.2', name: 'Protein Synthesis', focus: 'Transcription, Splicing, Translation, Code' },
+                { id: 'y1-22', code: '3.4.3', name: 'Mutation & Meiosis', focus: 'Crossing Over, Independent Segregation' },
+                { id: 'y1-23', code: '3.4.4', name: 'Diversity & Selection', focus: 'Directional/Stabilising Selection, Antibiotics (RP6)' },
+                { id: 'y1-24', code: '3.4.5-7', name: 'Biodiversity', focus: 'Taxonomy, Index of Diversity, Sampling (RP12)' }
+            ],
+            YEAR_2: [
+                { id: 'y2-1', code: '3.7.4', name: 'Populations', focus: 'Carrying Capacity, Abiotic/Biotic Factors' },
+                { id: 'y2-2', code: '3.7.4', name: 'Succession', focus: 'Primary Succession, Conservation' },
+                { id: 'y2-3', code: '3.7.3', name: 'Evolution', focus: 'Natural Selection, Speciation (Allopatric/Sympatric)' },
+                { id: 'y2-4', code: '3.5.1', name: 'Photosynthesis', focus: 'LDR, LIR (Calvin Cycle), Limiting Factors (RP7/8)' },
+                { id: 'y2-5', code: '3.5.2', name: 'Respiration: Aerobic', focus: 'Glycolysis, Link, Krebs Cycle' },
+                { id: 'y2-6', code: '3.5.2', name: 'Respiration: Ox Phos', focus: 'Electron Transfer Chain, Anaerobic (RP9)' },
+                { id: 'y2-7', code: '3.5.3', name: 'Energy Transfers', focus: 'NPP, GPP, Efficiency, Biomass' },
+                { id: 'y2-8', code: '3.5.4', name: 'Nutrient Cycles', focus: 'Nitrogen Cycle (Saprobionts), Phosphorus Cycle' },
+                { id: 'y2-9', code: '3.8.1-2', name: 'Gene Expression', focus: 'Stem Cells, Totipotency, iPS Cells' },
+                { id: 'y2-10', code: '3.8.2', name: 'Regulation', focus: 'Transcription Factors, Epigenetics, RNAi, Cancer' },
+                { id: 'y2-11', code: '3.8.4.1', name: 'Gene Tech: Basics', focus: 'Reverse Transcriptase, Restriction Enzymes, PCR' },
+                { id: 'y2-12', code: '3.8.4.2', name: 'Gene Tech: Advanced', focus: 'Probes, Fingerprinting, Diagnosis, Ethics' },
+                { id: 'y2-13', code: '3.6.2', name: 'Nervous Impulses', focus: 'Resting Potential, Action Potential, Refractory' },
+                { id: 'y2-14', code: '3.6.2', name: 'Synapses', focus: 'Cholinergic, Summation, Inhibition, Drugs' },
+                { id: 'y2-15', code: '3.6.1', name: 'Receptors', focus: 'Pacinian Corpuscle, Rods/Cones, Heart Rate (RP10)' },
+                { id: 'y2-16', code: '3.6.3', name: 'Muscles', focus: 'Sliding Filament, Sarcomere, Phosphocreatine' },
+                { id: 'y2-17', code: '3.6.4', name: 'Homeostasis', focus: 'Negative Feedback, Blood Glucose (Insulin/Glucagon)' },
+                { id: 'y2-18', code: '3.6.4', name: 'Kidneys', focus: 'Ultrafiltration, Loop of Henle, ADH (Osmoregulation)' },
+                { id: 'y2-19', code: '3.7.1', name: 'Inheritance: Basics', focus: 'Monohybrid, Dihybrid, Codominance, Sex-Linkage' },
+                { id: 'y2-20', code: '3.7.1-2', name: 'Inheritance: Stats', focus: 'Autosomal Linkage, Epistasis, Chi-Squared' },
+                { id: 'y2-21', code: '3.7.2', name: 'Hardy-Weinberg', focus: 'Allele Frequencies, Equations' }
+            ]
+        };
+
+        // Research-backed instructions for each activity
+        const ACTIVITY_GUIDES = {
+            'Flashcard Blitz': {
+                steps: [
+                    "Create cards for new terms immediately after the lesson.",
+                    "Front: Keyword (e.g., 'Glycosidic Bond'). Back: Precise definition & where it's found.",
+                    "Use 'Spaced Repetition': Review new cards daily, then 3 days, 1 week, 1 month.",
+                    "Do not just flip them. Say the answer out loud before turning over."
+                ]
+            },
+            'Blurting Method': {
+                steps: [
+                    "Select a topic (e.g., 'Respiration').",
+                    "Take a blank sheet of paper and a BLACK pen.",
+                    "Set a timer for 5-10 minutes. Write/draw everything you recall from memory. No peeking!",
+                    "Stop. Switch to a RED pen.",
+                    "Open your notes. Add missing details and correct mistakes in red.",
+                    "The red text is your focus for the next session."
+                ]
+            },
+            'Process Narration': {
+                steps: [
+                    "Choose a complex process (e.g., Transcription, Immunity, Cardiac Cycle).",
+                    "Record a voice note on your phone explaining the process as if teaching a Year 11 student.",
+                    "Listen back while following a textbook diagram.",
+                    "Note where you hesitated or used vague language (e.g., 'it goes there'). Replace with specific terms."
+                ]
+            },
+            'Concept Mapping': {
+                steps: [
+                    "Write the main topic in the center.",
+                    "Branch out to sub-topics. Crucially, draw lines linking UNRELATED branches.",
+                    "Example: Link 'Protein Structure' (Topic 1) to 'Enzymes' (Topic 1) and 'Antibodies' (Topic 2).",
+                    "Write the biological connection on the connecting line."
+                ]
+            },
+            'Suggest Questions': {
+                steps: [
+                    "These questions require applying knowledge to a new situation (AO2).",
+                    "Step 1: Identify the topic underlying the strange context (e.g., 'This is actually about osmosis').",
+                    "Step 2: Use standard scientific phrasing. Don't just say 'it stops working', say 'Active site changes shape, no E-S complexes form'.",
+                    "Step 3: Check the mark scheme for specific required keywords."
+                ]
+            },
+            'Context Translation': {
+                steps: [
+                    "Take a biological mechanism (e.g., Co-transport in the ileum).",
+                    "Rewrite the steps as a script for a patient or a non-scientist.",
+                    "Simplify the language but keep the *logic* intact.",
+                    "This tests if you truly understand the 'Why' and not just the fancy words."
+                ]
+            },
+            'Interleaving Session': {
+                steps: [
+                    "Do not study one topic for 3 hours.",
+                    "Pick 3 disparate topics (e.g., Biol Molecules, Mass Transport, Populations).",
+                    "Study Topic A for 20 mins. Switch to Topic B for 20 mins. Switch to Topic C.",
+                    "This forces your brain to constantly 'reload' different schemas, strengthening long-term memory."
+                ]
+            },
+            'Data Analysis': {
+                steps: [
+                    "Look at the axes first. What are the units?",
+                    "Describe the trend: 'As X increases, Y increases until...'",
+                    "Look for Standard Deviation (SD) bars. Do they overlap? If yes -> 'No significant difference'.",
+                    "Correlation does not mean causation. Always state this in evaluation questions."
+                ]
+            },
+            'Statistical Test': {
+                steps: [
+                    "Decision Tree: Looking for difference between means? -> T-Test.",
+                    "Looking for difference between observed & expected frequencies? -> Chi-Squared.",
+                    "Looking for correlation? -> Spearman's Rank.",
+                    "Null Hypothesis: 'There is no significant difference/correlation...'",
+                    "Conclusion: 'P < 0.05, reject Null' OR 'P > 0.05, accept Null'."
+                ]
+            },
+            'Evaluation': {
+                steps: [
+                    "Critique a conclusion. Look for:",
+                    "1. Sample size (too small?)",
+                    "2. Duration (too short?)",
+                    "3. Stats test (was one done?)",
+                    "4. Control variables (were they kept constant?)",
+                    "5. Generalization (results in mice may not apply to humans)."
+                ]
+            },
+            'Practical Audit': {
+                steps: [
+                    "Choose a Required Practical (RP1-12).",
+                    "Can you write the method from memory?",
+                    "Identify the Independent, Dependent, and Control variables.",
+                    "Write the Risk Assessment: Hazard -> Risk -> Control.",
+                    "Sketch the graph you would expect to see."
+                ]
+            },
+            'Virtual Lab': {
+                steps: [
+                    "Find a video of the experiment online.",
+                    "Pause at key steps. Why did they add that buffer? Why use a water bath?",
+                    "Note down the specific apparatus used (e.g., 'use a colorimeter with a red filter').",
+                    "Record any 'Common Errors' mentioned (e.g., forgetting to zero the colorimeter)."
+                ]
+            },
+            'Essay Planning': {
+                steps: [
+                    "Title: Choose a synoptic title (e.g., 'The importance of ions').",
+                    "Brainstorm: List 5 distinct topic areas (e.g., Nervous Impulses, Chemiosmosis, Haemoglobin, Co-transport, Fertilisation).",
+                    "Draft the 'Link': How does one paragraph flow to the next?",
+                    "Do not write the full essay. Just the skeleton plan."
+                ]
+            },
+            'Paragraph Formula': {
+                steps: [
+                    "Write ONE perfect paragraph for an essay.",
+                    "1. Statement: 'Ions are crucial for...'",
+                    "2. Explanation (AO1): Detail the biology (Na+/K+ pump).",
+                    "3. Relevance (AO2): 'Without this potential, impulses cannot be sent...'",
+                    "4. Extension: Link to another topic or 'Beyond Spec' knowledge."
+                ]
+            },
+            'Beyond Spec Reading': {
+                steps: [
+                    "Find an article (New Scientist, Nature Briefing) related to a current topic.",
+                    "Read it. Summarize it in 3 bullet points.",
+                    "Identify one fact you can use in an essay (e.g., a specific drug name or a new discovery).",
+                    "Add this to your 'Essay Bank'."
+                ]
+            }
+        };
+
+        const ACTIVITY_MENU = {
+            AO1: [
+                { title: 'Flashcard Blitz', desc: 'Rapid fire recall of definitions.', icon: '⚡' },
+                { title: 'Blurting Method', desc: 'Write everything known on blank paper.', icon: '🧠' },
+                { title: 'Process Narration', desc: 'Record voice explaining a process.', icon: '🎙️' },
+                { title: 'Concept Mapping', desc: 'Draw connections between topics.', icon: '🗺️' }
+            ],
+            AO2: [
+                { title: 'Suggest Questions', desc: 'Practice "Suggest" Qs. Apply knowledge.', icon: '🤔' },
+                { title: 'Context Translation', desc: 'Explain mechanism to a patient.', icon: '🏥' },
+                { title: 'Interleaving Session', desc: 'Mix questions from different topics.', icon: 'Cc' }
+            ],
+            AO3: [
+                { title: 'Data Analysis', desc: 'Analyze graphs, trends, and SD bars.', icon: 'Hz' },
+                { title: 'Statistical Test', desc: 'Chi-squared, T-test, or Simpson\'s.', icon: '∑' },
+                { title: 'Evaluation', desc: 'Critique a conclusion/methodology.', icon: '⚖️' }
+            ],
+            PRACTICAL: [
+                { title: 'Practical Audit', desc: 'Review Method, Risks, Variables.', icon: 'Ui' },
+                { title: 'Virtual Lab', desc: 'Watch video walkthrough of RP.', icon: '📺' }
+            ],
+            ESSAY: [
+                { title: 'Essay Planning', desc: 'Draft outline with synoptic links.', icon: '📝' },
+                { title: 'Paragraph Formula', desc: 'Statement -> Explain -> Relevance -> Extension.', icon: '✍️' },
+                { title: 'Beyond Spec Reading', desc: 'Read external article for top marks.', icon: '📖' }
+            ],
+            DIRECTED: [
+                { title: 'Complete Key Homework', desc: 'Complete assigned teacher work.', icon: '🏠' },
+                { title: 'Self assess Key Homework', desc: 'Mark and correct your work.', icon: '✅' },
+                { title: 'Complete Activity Pack', desc: 'Finish topic workbook/pack.', icon: '📂' },
+                { title: 'Act on Assessment Feedback', desc: 'Improve based on teacher comments.', icon: '📈' }
+            ]
+        };
+
+        const WEEKLY_TEMPLATES = {
+            YEAR_1: {
+                days: {
+                    MONDAY: [
+                        { label: 'Free Period', type: 'Active Recall', activity: 'Blurting Previous Topic', duration: 1 },
+                        { label: 'Evening', type: 'Content', activity: 'Consolidate Today\'s Lesson', duration: 1 }
+                    ],
+                    TUESDAY: [
+                        { label: 'Free Period', type: 'AO2 Skills', activity: '"Suggest" Question Practice', duration: 0.5 },
+                        { label: 'Evening', type: 'Deep Dive', activity: 'Complex Process (e.g. Immunity)', duration: 1 }
+                    ],
+                    WEDNESDAY: [
+                        { label: 'Free Period', type: 'Maths Skills', activity: 'Calculations (e.g., Mag, SD)', duration: 0.5 },
+                        { label: 'Evening', type: 'Application', activity: 'Exam Question Pack', duration: 1 }
+                    ],
+                    THURSDAY: [
+                        { label: 'Free Period', type: 'Vocab', activity: 'Flashcard Blitz', duration: 0.5 },
+                        { label: 'Evening', type: 'Pre-Study', activity: 'Read Ahead for Next Topic', duration: 0.5 }
+                    ],
+                    FRIDAY: [
+                        { label: 'Free Period', type: 'Practical', activity: 'RP Method & Risks', duration: 1 },
+                        { label: 'Evening', type: 'Rest', activity: 'Review Error Log', duration: 0.5 }
+                    ],
+                    SATURDAY: [
+                        { label: 'Morning', type: 'Interleaving', activity: 'Mix Topics 1 & 2', duration: 1 },
+                        { label: 'Afternoon', type: 'Deep Work', activity: 'Hardest Concept Review', duration: 1 },
+                        { label: 'Evening', type: 'Review', activity: 'Weekly Quiz', duration: 0.5 }
+                    ],
+                    SUNDAY: [
+                        { label: 'Morning', type: 'Pre-Study', activity: 'Plan Next Week', duration: 0.5 },
+                        { label: 'Afternoon', type: 'Practical', activity: 'Virtual Lab Watch', duration: 0.5 },
+                        { label: 'Evening', type: 'Rest', activity: 'Light Reading', duration: 0 }
+                    ]
+                },
+                holiday: {
+                    'AllDays': [
+                        { label: 'Morning', type: 'Deep Work', activity: 'Topic Mastery Session', duration: 1.5 },
+                        { label: 'Afternoon', type: 'Application', activity: 'Exam Paper Practice', duration: 1.5 },
+                        { label: 'Evening', type: 'Review', activity: 'Light Retrieval / Vocab', duration: 0.5 }
+                    ]
+                }
+            },
+            YEAR_2: {
+                days: {
+                    MONDAY: [
+                        { label: 'Free Period', type: 'Synoptic', activity: 'Link Yr 2 Content to Yr 1', duration: 1 },
+                        { label: 'Evening', type: 'Deep Dive', activity: 'New Content (e.g. Respiration)', duration: 1.5 }
+                    ],
+                    TUESDAY: [
+                        { label: 'Free Period', type: 'Maths/Stats', activity: 'Chi-Squared/T-Test Practice', duration: 1 },
+                        { label: 'Evening', type: 'Essay', activity: 'Essay Planning (Themes)', duration: 1 }
+                    ],
+                    WEDNESDAY: [
+                        { label: 'Free Period', type: 'AO2/Application', activity: 'Data Analysis Qs', duration: 1 },
+                        { label: 'Evening', type: 'Consolidation', activity: 'Review Lecture Notes', duration: 1 }
+                    ],
+                    THURSDAY: [
+                        { label: 'Free Period', type: 'Recall', activity: 'Blurting Old Topics', duration: 0.5 },
+                        { label: 'Evening', type: 'Practical', activity: 'RP Write-up / Analysis', duration: 1 }
+                    ],
+                    FRIDAY: [
+                        { label: 'Free Period', type: 'Synoptic', activity: 'Paragraph Formula Practice', duration: 1 },
+                        { label: 'Evening', type: 'Review', activity: 'Error Log Update', duration: 0.5 }
+                    ],
+                    SATURDAY: [
+                        { label: 'Morning', type: 'Exam Practice', activity: 'Timed Past Paper Section', duration: 1.5 },
+                        { label: 'Afternoon', type: 'Deep Work', activity: 'Topic Weakness Address', duration: 1.5 },
+                        { label: 'Evening', type: 'Review', activity: 'Mark Scheme Analysis', duration: 0.5 }
+                    ],
+                    SUNDAY: [
+                        { label: 'Morning', type: 'Essay', activity: 'Write Timed Essay', duration: 1 },
+                        { label: 'Afternoon', type: 'Pre-Study', activity: 'Prep for next week', duration: 1 },
+                        { label: 'Evening', type: 'Rest', activity: 'Bio News Reading', duration: 0 }
+                    ]
+                },
+                holiday: {
+                    'AllDays': [
+                        { label: 'Morning', type: 'Essay/Synoptic', activity: 'Essay Planning or Writing', duration: 1.5 },
+                        { label: 'Afternoon', type: 'Exam Practice', activity: 'Full Paper Walkthrough', duration: 2 },
+                        { label: 'Evening', type: 'AO3/Stats', activity: 'Data Analysis & Stats', duration: 1 }
+                    ]
+                }
+            }
+        };
+
+        const generatePlcBadges = () => {
+            const badges = [];
+            Object.entries(PLC_DATA).forEach(([topicKey, sections]) => {
+                let year = 1;
+                if (topicKey.includes("Topic 5") || topicKey.includes("Topic 6") || 
+                    topicKey.includes("Topic 7") || topicKey.includes("Topic 8")) {
+                    year = 2;
+                }
+                let Icon = BookOpen;
+                if (topicKey.includes("Topic 1")) Icon = Dna;
+                if (topicKey.includes("Topic 2")) Icon = Microscope;
+                if (topicKey.includes("Topic 3")) Icon = Activity;
+                if (topicKey.includes("Topic 4")) Icon = Dna;
+                if (topicKey.includes("Topic 5")) Icon = Sun;
+                if (topicKey.includes("Topic 6")) Icon = Zap;
+                if (topicKey.includes("Topic 7")) Icon = Leaf;
+                if (topicKey.includes("Topic 8")) Icon = FlaskConical;
+                if (topicKey.includes("Math")) Icon = Calculator;
+                if (topicKey.includes("Practical")) Icon = FlaskConical;
+
+                sections.forEach((section, idx) => {
+                    badges.push({
+                        id: `plc_master_${topicKey.substring(0,5).replace(/\s/g, '')}_${idx}_${section.section.substring(0,5).replace(/\s/g, '')}`,
+                        name: `Master: ${section.section}`,
+                        desc: `Rate all objectives in '${section.section}' as Green.`,
+                        icon: Icon,
+                        type: 'generated_plc',
+                        year: year,
+                        criterion: (stats, currentYear, ratings) => {
+                            return section.objectives.every(obj => ratings[obj] === 'green');
+                        }
+                    });
+                });
+            });
+            return badges;
+        };
+
+        const generateHourBadges = () => {
+            const milestones = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100, 120, 140, 160, 180, 200, 250, 300];
+            return milestones.map(hours => ({
+                id: `hours_${hours}`,
+                name: `${hours} Hour Scholar`,
+                desc: `Log ${hours} total hours of independent study.`,
+                icon: Clock,
+                type: 'cumulative',
+                year: hours > 50 ? 2 : 1,
+                criterion: (stats) => stats.totalHours >= hours
+            }));
+        };
+
+        const CORE_BADGES = [
+            { id: 'first_steps', name: 'First Steps', desc: 'Log your first 5 hours of independent study', icon: Check, type: 'cumulative', year: 1, criterion: (stats) => stats.totalHours >= 5 },
+            { id: 'homework_novice', name: 'Homework Novice', desc: 'Complete 5 Directed Independent Study tasks', icon: BookOpen, type: 'cumulative', year: 1, criterion: (stats) => stats.directed >= 5 },
+            { id: 'homework_pro', name: 'Homework Pro', desc: 'Complete 20 Directed Independent Study tasks', icon: BookOpen, type: 'cumulative', year: 1, criterion: (stats) => stats.directed >= 20 },
+            { id: 'lab_rat', name: 'Lab Rat', desc: 'Complete 5 Required Practical review sessions', icon: FlaskConical, type: 'cumulative', year: 1, criterion: (stats) => stats.practical >= 5 },
+            { id: 'ao1_apprentice', name: 'Knowledge Sponge', desc: '5 Hours of AO1 (Recall)', icon: Brain, type: 'cumulative', year: 1, criterion: (s) => s.ao1 >= 5 },
+            { id: 'ao2_apprentice', name: 'Applier', desc: '5 Hours of AO2 (Application)', icon: Brain, type: 'cumulative', year: 1, criterion: (s) => s.ao2 >= 5 },
+            { id: 'ao3_apprentice', name: 'Analyst', desc: '5 Hours of AO3 (Data)', icon: BarChart3, type: 'cumulative', year: 1, criterion: (s) => s.ao3 >= 5 },
+            { id: 'teachers_pet', name: 'Teacher\'s Pet', desc: 'Complete 50 Directed Independent Study tasks', icon: Star, type: 'cumulative', year: 2, criterion: (stats) => stats.directed >= 50 },
+            { id: 'essayist', name: 'The Essayist', desc: 'Log 10 Essay Planning or Writing sessions', icon: PenTool, type: 'cumulative', year: 2, criterion: (stats) => stats.essay >= 10 },
+            { id: 'synoptic_thinker', name: 'Synoptic Thinker', desc: 'Log 25 hours of AO2 (Application) study', icon: Brain, type: 'cumulative', year: 2, criterion: (stats) => stats.ao2 >= 25 },
+            { id: 'data_detective', name: 'Data Detective', desc: 'Log 20 hours of AO3 (Analysis) study', icon: BarChart3, type: 'cumulative', year: 2, criterion: (stats) => stats.ao3 >= 20 },
+            { id: 'clock_watcher', name: 'Clock Watcher', desc: 'Met this week\'s study target', icon: Clock, type: 'weekly' },
+            { id: 'hat_trick', name: 'Hat Trick', desc: 'Met target for 3 consecutive weeks', icon: Medal, type: 'streak', criterion: (stats) => stats.weeksMet >= 3 },
+            { id: 'on_fire', name: 'On Fire', desc: 'Met target for 10 consecutive weeks', icon: Medal, type: 'streak', criterion: (stats) => stats.weeksMet >= 10 },
+            { id: 'term_titan', name: 'Term Titan', desc: 'Met target for 15 consecutive weeks', icon: Trophy, type: 'streak', criterion: (stats) => stats.weeksMet >= 15 },
+            { id: 'balanced_scholar', name: 'Polymath', desc: 'Log at least 1 session of every type (AO1, AO2, AO3, Practical, Essay)', icon: Star, type: 'cumulative', criterion: (stats) => stats.typesCount >= 5 }
+        ];
+
+        const BADGE_DEFINITIONS = [
+            ...CORE_BADGES,
+            ...generateHourBadges(),
+            ...generatePlcBadges()
+        ];
+
+        // --- HELPER FUNCTIONS ---
+
+        const getWeeksBetween = (startDate, endDate) => {
+            const weeks = [];
+            let currentDate = new Date(startDate);
+            const day = currentDate.getDay();
+            const diff = currentDate.getDate() - day + (day === 0 ? -6 : 1);
+            currentDate.setDate(diff);
+
+            let weekCount = 1;
+            const end = new Date(endDate);
+
+            while (currentDate <= end) {
+                const weekStart = new Date(currentDate);
+                const weekEnd = new Date(currentDate);
+                weekEnd.setDate(weekEnd.getDate() + 6);
+                
+                const isYear1 = weekCount <= 42; 
+
+                weeks.push({
+                    id: weekCount,
+                    label: `Week ${weekCount}`,
+                    start: weekStart,
+                    end: weekEnd,
+                    phase: isYear1 ? 'Year 1: Foundation' : 'Year 2: Mastery',
+                    isYear1
+                });
+                
+                currentDate.setDate(currentDate.getDate() + 7);
+                weekCount++;
+            }
+            return weeks;
+        };
+
+        const calculateDuration = (start, end) => {
+            if (!start || !end) return 0;
+            const [startH, startM] = start.split(':').map(Number);
+            const [endH, endM] = end.split(':').map(Number);
+            const startDate = new Date(2000, 0, 1, startH, startM);
+            const endDate = new Date(2000, 0, 1, endH, endM);
+            let diff = (endDate - startDate) / 1000 / 60 / 60; 
+            if (diff < 0) diff += 24; 
+            return parseFloat(diff.toFixed(2));
+        };
+
+        const calculateStats = (tasks, weeks, targets, currentWeekId, plcRatings) => {
+            const stats = { ao1: 0, ao2: 0, ao3: 0, practical: 0, essay: 0, directed: 0, typesCount: 0, weeksMet: 0, totalScore: 0, totalHours: 0 };
+            const typesUsed = new Set();
+            const earnedBadges = [];
+            const currentWeekObj = weeks.find(w => w.id === currentWeekId);
+            const currentYear = currentWeekObj ? (currentWeekObj.isYear1 ? 1 : 2) : 1;
+
+            Object.values(tasks).flat().forEach(t => {
+                if (t.completed) {
+                    if (t.type !== 'DIRECTED') stats.totalHours += t.duration;
+                    let points = t.duration * 100;
+                    if (t.type === 'AO1') stats.ao1 += t.duration;
+                    if (t.type === 'AO2') { stats.ao2 += t.duration; points *= 1.2; }
+                    if (t.type === 'AO3') { stats.ao3 += t.duration; points *= 1.5; }
+                    if (t.type === 'Practical') { stats.practical += 1; points += 50; }
+                    if (t.type === 'Essay') { stats.essay += 1; points *= 1.5; }
+                    if (t.type === 'DIRECTED') { points = 50; stats.directed += 1; }
+                    stats.totalScore += points;
+                    typesUsed.add(t.type);
+                }
+            });
+            stats.typesCount = typesUsed.size;
+            stats.totalScore = Math.round(stats.totalScore);
+
+            weeks.forEach(w => {
+                if (w.id > currentWeekId) return; 
+                const weekTasks = tasks[w.id] || [];
+                const total = weekTasks.reduce((acc, t) => acc + (t.completed && t.type !== 'DIRECTED' ? t.duration : 0), 0);
+                const target = w.isYear1 ? targets.year1 : targets.year2;
+                if (total >= target) stats.weeksMet++;
+            });
+
+            const currentWeekTasks = tasks[currentWeekId] || [];
+            const currentWeekTotal = currentWeekTasks.reduce((acc, t) => acc + (t.completed && t.type !== 'DIRECTED' ? t.duration : 0), 0);
+            const currentTarget = weeks.find(w => w.id === currentWeekId)?.isYear1 ? targets.year1 : targets.year2;
+
+            BADGE_DEFINITIONS.forEach(badge => {
+                let earned = false;
+                if (badge.year && currentYear < badge.year) return; 
+                if (badge.type === 'cumulative' || badge.type === 'streak' || badge.type === 'generated_plc') {
+                    earned = badge.criterion(stats, currentYear, plcRatings);
+                } else if (badge.type === 'weekly' && badge.id === 'target_met') {
+                    earned = currentWeekTotal >= currentTarget;
+                } else if (badge.type === 'weekly' && badge.id === 'overachiever') {
+                    earned = currentWeekTotal >= (currentTarget + 2);
+                }
+                if (earned) earnedBadges.push(badge.id);
+            });
+
+            return { earnedBadges, stats };
+        };
+
+        // --- COMPONENTS ---
+
+        const Modal = ({ isOpen, onClose, title, children, maxWidth = "max-w-2xl" }) => {
+            if (!isOpen) return null;
+            return (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" style={{ fontFamily: 'Aptos, sans-serif' }}>
+                    <div className={`bg-white rounded-xl shadow-2xl w-full ${maxWidth} max-h-[90vh] overflow-y-auto custom-scrollbar`}>
+                        <div className="flex justify-between items-center p-6 border-b border-gray-100">
+                            <h2 className="text-xl font-bold text-gray-800">{title}</h2>
+                            <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full">
+                                <Plus className="w-6 h-6 rotate-45 text-gray-500" />
+                            </button>
+                        </div>
+                        <div className="p-6">
+                            {children}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const GuideModal = ({ isOpen, onClose, guide, title }) => {
+            if (!isOpen || !guide) return null;
+            return (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-4" style={{ fontFamily: 'Aptos, sans-serif' }}>
+                    <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[80vh] overflow-y-auto custom-scrollbar">
+                        <div className="bg-emerald-600 p-6 rounded-t-xl text-white flex justify-between items-start">
+                            <div>
+                                <h2 className="text-xl font-bold">{title}</h2>
+                                <p className="text-emerald-100 text-sm mt-1">Research-based study technique</p>
+                            </div>
+                            <button onClick={onClose} className="p-1 hover:bg-emerald-700 rounded-full transition-colors">
+                                <X className="w-5 h-5 text-white" />
+                            </button>
+                        </div>
+                        <div className="p-6 space-y-4">
+                            <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                                <h3 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
+                                    <BookOpen className="w-4 h-4 text-emerald-600" /> Instructions
+                                </h3>
+                                <ol className="list-decimal list-outside ml-4 space-y-3 text-sm text-gray-700">
+                                    {guide.steps.map((step, idx) => (
+                                        <li key={idx} className="pl-1 leading-relaxed">{step}</li>
+                                    ))}
+                                </ol>
+                            </div>
+                            <div className="flex justify-end">
+                                <button onClick={onClose} className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium transition-colors">
+                                    Close Guide
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const PlcDashboard = ({ isOpen, onClose, ratings, setRatings }) => {
+            const [activeTopic, setActiveTopic] = useState("Topic 1: Biological Molecules");
+            const [reflections, setReflections] = useState(() => {
+                if (typeof window !== 'undefined') return JSON.parse(localStorage.getItem('biology_plc_reflections')) || {};
+                return {};
+            });
+
+            useEffect(() => {
+                if (typeof window !== 'undefined') localStorage.setItem('biology_plc_reflections', JSON.stringify(reflections));
+            }, [reflections]);
+
+            const handleRate = (objective, rating) => {
+                setRatings(prev => ({ ...prev, [objective]: rating }));
+            };
+
+            const handleReflectionChange = (topic, section, value) => {
+                setReflections(prev => ({ ...prev, [`${topic}-${section}`]: value }));
+            };
+
+            const calculateProgress = (topic) => {
+                const objectives = PLC_DATA[topic].flatMap(s => s.objectives);
+                const total = objectives.length;
+                const green = objectives.filter(obj => ratings[obj] === 'green').length;
+                return (green / total) * 100;
+            };
+
+            if (!isOpen) return null;
+
+            return (
+                <Modal isOpen={isOpen} onClose={onClose} title="Personal Learning Checklist (PLC)" maxWidth="max-w-6xl">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6 h-[70vh]">
+                        <div className="md:col-span-1 border-r pr-4 overflow-y-auto space-y-2 custom-scrollbar">
+                            {Object.keys(PLC_DATA).map(topic => {
+                                const progress = calculateProgress(topic);
+                                return (
+                                    <button
+                                        key={topic}
+                                        onClick={() => setActiveTopic(topic)}
+                                        className={`w-full text-left p-3 rounded-lg text-sm font-medium transition-all ${
+                                            activeTopic === topic 
+                                                ? 'bg-emerald-50 text-emerald-800 border border-emerald-200 shadow-sm' 
+                                                : 'text-gray-600 hover:bg-gray-50'
+                                        }`}
+                                    >
+                                        <div className="flex justify-between items-center mb-1">
+                                            <span>{topic.split(':')[0]}</span>
+                                            <span className="text-xs font-bold">{Math.round(progress)}%</span>
+                                        </div>
+                                        <div className="w-full bg-gray-200 rounded-full h-1.5">
+                                            <div className="bg-emerald-500 h-1.5 rounded-full" style={{ width: `${progress}%` }}></div>
+                                        </div>
+                                        <div className="text-xs text-gray-400 mt-1 truncate">{topic.split(':')[1]}</div>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                        <div className="md:col-span-3 overflow-y-auto pr-2 custom-scrollbar">
+                            <div className="mb-6">
+                                <h3 className="text-2xl font-bold text-gray-800 mb-1">{activeTopic}</h3>
+                                <p className="text-gray-500 text-sm">Rate your confidence: Red (Need Help), Amber (Getting There), Green (Mastered)</p>
+                            </div>
+                            <div className="space-y-8">
+                                {PLC_DATA[activeTopic].map((section, idx) => (
+                                    <div key={idx} className="bg-white border rounded-xl overflow-hidden shadow-sm">
+                                        <div className="bg-gray-50 px-4 py-3 border-b font-bold text-gray-700 flex justify-between items-center">
+                                            {section.section}
+                                            <span className="text-xs font-normal text-gray-400 bg-white px-2 py-1 rounded border">
+                                                {section.objectives.filter(o => ratings[o] === 'green').length}/{section.objectives.length} Mastered
+                                            </span>
+                                        </div>
+                                        <div className="divide-y divide-gray-100">
+                                            {section.objectives.map((obj, i) => (
+                                                <div key={i} className="p-4 flex items-start gap-4 hover:bg-gray-50 transition-colors">
+                                                    <div className="flex-1 text-sm text-gray-800 leading-relaxed pt-1.5">{obj}</div>
+                                                    <div className="flex gap-2 shrink-0">
+                                                        {['red', 'amber', 'green'].map(color => (
+                                                            <button
+                                                                key={color}
+                                                                onClick={() => handleRate(obj, color)}
+                                                                className={`p-2 rounded-lg border transition-all ${
+                                                                    ratings[obj] === color
+                                                                        ? color === 'red' ? 'bg-red-100 border-red-400 text-red-600'
+                                                                        : color === 'amber' ? 'bg-orange-100 border-orange-400 text-orange-600'
+                                                                        : 'bg-emerald-100 border-emerald-400 text-emerald-600'
+                                                                        : 'bg-white border-gray-200 text-gray-300 hover:border-gray-300'
+                                                                }`}
+                                                            >
+                                                                {color === 'red' && <Frown className="w-5 h-5" />}
+                                                                {color === 'amber' && <Meh className="w-5 h-5" />}
+                                                                {color === 'green' && <Smile className="w-5 h-5" />}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <div className="bg-blue-50/50 p-4 border-t border-gray-100">
+                                            <div className="text-xs font-bold text-blue-700 mb-2 flex items-center gap-1">
+                                                <MessageSquare className="w-3 h-3" /> 
+                                                {section.section} - Reflection & Notes
+                                            </div>
+                                            <textarea
+                                                value={reflections[`${activeTopic}-${section.section}`] || ''}
+                                                onChange={(e) => handleReflectionChange(activeTopic, section.section, e.target.value)}
+                                                className="w-full h-20 p-2 rounded border border-blue-200 text-xs focus:ring-1 focus:ring-blue-400 outline-none resize-none bg-white text-gray-600"
+                                                placeholder={`Notes for ${section.section}...`}
+                                            />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </Modal>
+            );
+        };
+
+        const HowToModal = ({ isOpen, onClose }) => {
+            if (!isOpen) return null;
+            return (
+                <Modal isOpen={isOpen} onClose={onClose} title="How to Use the Biology Planner" maxWidth="max-w-4xl">
+                    <div className="space-y-6 text-gray-700">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="bg-emerald-50 p-4 rounded-lg border border-emerald-100">
+                                <h3 className="font-bold text-lg text-emerald-800 mb-2">1. Getting Started</h3>
+                                <ul className="list-disc ml-5 text-sm space-y-2">
+                                    <li><strong>Setup:</strong> Click <Settings className="w-4 h-4 inline"/> to set your Exam Date. The app automatically calculates your 2-year timeline.</li>
+                                    <li><strong>Holiday Mode:</strong> In Settings, mark weeks as "Holidays" to switch to an intensive revision schedule (3 slots/day).</li>
+                                </ul>
+                            </div>
+                            <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                                <h3 className="font-bold text-lg text-blue-800 mb-2">2. Planning & Study Tasks</h3>
+                                <ul className="list-disc ml-5 text-sm space-y-2">
+                                    <li><strong>Teaching Sequence:</strong> Select your current class topic in the sidebar (or "Topics" tab on mobile) to filter relevant activities.</li>
+                                    <li><strong>Add Tasks:</strong> Click <strong>+ Add Task</strong> in any slot. Choose a skill focus (AO1-AO3).</li>
+                                    <li><strong>Directed Study:</strong> Use the "Directed" category for Homework/Assessments. These earn fixed points but don't count towards your <em>hourly</em> target.</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div className="border p-4 rounded-lg">
+                            <h3 className="font-bold text-lg text-yellow-700 mb-2">3. Badges, Points & Rewards</h3>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                                <div>
+                                    <p className="font-semibold mb-1">BioPoints System:</p>
+                                    <ul className="list-disc ml-5 space-y-1 text-gray-600">
+                                        <li><strong>AO1 (Recall):</strong> 100 pts/hr</li>
+                                        <li><strong>AO2 (Apply):</strong> 120 pts/hr</li>
+                                        <li><strong>AO3 (Analyse):</strong> 150 pts/hr</li>
+                                        <li><strong>Directed Tasks:</strong> 50 pts (Fixed)</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <p className="font-semibold mb-1">Earning Badges (50+ Available):</p>
+                                    <ul className="list-disc ml-5 space-y-1 text-gray-600">
+                                        <li><strong>Milestones:</strong> Badges for 5, 10, 20... up to 300 hours!</li>
+                                        <li><strong>Mastery:</strong> Turn a whole PLC section Green to earn its specific badge.</li>
+                                        <li><strong>Streaks:</strong> Hit weekly targets consistently.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="border p-4 rounded-lg bg-gray-50 border-gray-200">
+                            <h3 className="font-bold text-lg text-gray-800 mb-2">4. Personal Learning Checklist (PLC)</h3>
+                            <ul className="list-disc ml-5 text-sm space-y-1">
+                                <li>Rate every specification objective as <span className="text-red-500 font-bold">Red</span> (Need Help), <span className="text-orange-500 font-bold">Amber</span> (Unsure), or <span className="text-green-600 font-bold">Green</span> (Mastered).</li>
+                                <li><strong>Unlock Rewards:</strong> Achieving all 'Greens' in a specific sub-topic (e.g., "Lipids") instantly unlocks a Mastery Badge.</li>
+                                <li>Use the reflection box to note down specific weaknesses for your teacher.</li>
+                            </ul>
+                        </div>
+
+                        <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100">
+                             <h3 className="font-bold text-lg text-indigo-800 mb-2">5. Saving & Transferring Data</h3>
+                             <p className="text-sm text-indigo-900 mb-2">Since this app runs in your browser, data is stored on this specific device. To move between devices (e.g., Laptop to Phone) or backup your work:</p>
+                             <ul className="list-disc ml-5 text-sm space-y-2">
+                                <li><strong>Save Progress:</strong> Go to <Settings className="w-4 h-4 inline"/> <strong>Settings</strong> and click "Save Progress". This converts all your data (schedule, badges, PLC ratings) into a <code>.json</code> file that downloads to your device. We recommend saving this file to a cloud location like <strong>OneDrive</strong> or <strong>Google Drive</strong>.</li>
+                                <li><strong>Load Progress:</strong> On your new device, open the planner, go to Settings, and click "Load Progress". Select the backup file you saved earlier. This will instantly restore your entire planner state.</li>
+                             </ul>
+                        </div>
+                    </div>
+                </Modal>
+            );
+        };
+
+        const ProgressBar = ({ current, target, colorClass = "bg-green-500" }) => {
+            const percentage = Math.min((current / target) * 100, 100);
+            return (
+                <div className="w-full bg-gray-200 rounded-full h-3">
+                    <div className={`h-3 rounded-full transition-all duration-500 ${colorClass}`} style={{ width: `${percentage}%` }}></div>
+                </div>
+            );
+        };
+
+        const ProgressChart = ({ weeks, tasks, targets, holidayWeeks }) => {
+            let cumulative = 0;
+            const data = weeks.map(week => {
+                const weekTasks = tasks[week.id] || [];
+                const weekTotal = weekTasks.reduce((acc, t) => acc + (t.completed ? t.duration : 0), 0);
+                cumulative += weekTotal;
+                return {
+                    id: week.id,
+                    label: week.label,
+                    hours: weekTotal,
+                    cumulative: cumulative,
+                    target: week.isYear1 ? targets.year1 : targets.year2,
+                    isHoliday: holidayWeeks[week.id]
+                };
+            });
+
+            const maxWeekly = Math.max(...data.map(d => d.hours), Math.max(targets.year1, targets.year2)) * 1.2;
+            const maxCumulative = data[data.length - 1].cumulative * 1.1 || 10;
+            const height = 300;
+            const width = data.length * 40; 
+            const padding = 40;
+            
+            return (
+                <div className="overflow-x-auto border rounded-lg bg-white p-4">
+                    <div className="min-w-full" style={{ width: `${Math.max(1000, width)}px` }}>
+                        <svg width="100%" height={height} className="overflow-visible">
+                            <line x1={0} y1={height - padding} x2="100%" y2={height - padding} stroke="#e5e7eb" strokeWidth="2" />
+                            {data.map((d, i) => {
+                                const x = i * 40 + padding;
+                                const barHeight = (d.hours / maxWeekly) * (height - 2 * padding);
+                                const targetHeight = (d.target / maxWeekly) * (height - 2 * padding);
+                                const cumY = height - padding - ((d.cumulative / maxCumulative) * (height - 2 * padding));
+                                return (
+                                    <g key={d.id}>
+                                        {d.isHoliday && <rect x={x} y={padding} width={20} height={height - 2 * padding} fill="#e0f2fe" rx="2" />}
+                                        <rect x={x} y={height - padding - barHeight} width={20} height={barHeight} fill={d.hours >= d.target ? "#10b981" : "#fcd34d"} rx="2" className="transition-all duration-500 hover:opacity-80" />
+                                        <line x1={x - 2} y1={height - padding - targetHeight} x2={x + 22} y2={height - padding - targetHeight} stroke="#ef4444" strokeWidth="2" strokeDasharray="2 2" />
+                                        {i > 0 && (
+                                            <line x1={(i - 1) * 40 + padding + 10} y1={height - padding - ((data[i-1].cumulative / maxCumulative) * (height - 2 * padding))} x2={x + 10} y2={cumY} stroke="#3b82f6" strokeWidth="2" />
+                                        )}
+                                        <circle cx={x + 10} cy={cumY} r="3" fill="#3b82f6" />
+                                        <text x={x + 10} y={height - 10} textAnchor="middle" fontSize="10" fill="#6b7280" className="select-none">{d.id % 5 === 0 ? `W${d.id}` : (d.id === 1 ? 'W1' : '')}</text>
+                                        {d.isHoliday && <text x={x + 10} y={padding - 5} textAnchor="middle" fontSize="8" fill="#0ea5e9">HOL</text>}
+                                    </g>
+                                );
+                            })}
+                            <g transform={`translate(10, 10)`}>
+                                <rect x="0" y="0" width="10" height="10" fill="#10b981" rx="2" /> <text x="15" y="9" fontSize="10" fill="#374151">Target Met</text>
+                                <rect x="70" y="0" width="10" height="10" fill="#fcd34d" rx="2" /> <text x="85" y="9" fontSize="10" fill="#374151">Below Target</text>
+                                <rect x="140" y="0" width="10" height="10" fill="#e0f2fe" rx="2" /> <text x="155" y="9" fontSize="10" fill="#374151">Holiday Week</text>
+                                <line x1="215" y1="5" x2="235" y2="5" stroke="#3b82f6" strokeWidth="2" /> <text x="240" y="9" fontSize="10" fill="#374151">Cumulative Total (Right Scale)</text>
+                            </g>
+                        </svg>
+                    </div>
+                    <div className="text-center text-xs text-gray-500 mt-2">Scroll right to see future weeks</div>
+                </div>
+            );
+        };
+
+        function App() {
+            const [examDate, setExamDate] = useState(() => {
+                if (typeof window !== 'undefined') {
+                    return localStorage.getItem('biology_planner_exam_date') || '2027-06-01';
+                }
+                return '2027-06-01';
+            }); 
+            const [weeks, setWeeks] = useState([]);
+            const [currentWeekId, setCurrentWeekId] = useState(1);
+            const [tasks, setTasks] = useState(() => {
+                if (typeof window !== 'undefined') {
+                    const saved = localStorage.getItem('biology_planner_tasks');
+                    return saved ? JSON.parse(saved) : {};
+                }
+                return {};
+            }); 
+            
+            const [settingsOpen, setSettingsOpen] = useState(false);
+            const [statsOpen, setStatsOpen] = useState(false);
+            const [plcOpen, setPlcOpen] = useState(false);
+            const [howToOpen, setHowToOpen] = useState(false); 
+            
+            const [mobileTab, setMobileTab] = useState('schedule'); 
+            
+            const [addTaskModal, setAddTaskModal] = useState({ open: false, day: null, slotLabel: null });
+            const [newTask, setNewTask] = useState({ title: '', start: '09:00', end: '10:00', type: 'AO1' });
+            const [guideModal, setGuideModal] = useState({ open: false, topic: null });
+
+            const fixedCategory = useMemo(() => {
+                if (!newTask.title) return null;
+                for (const [cat, items] of Object.entries(ACTIVITY_MENU)) {
+                    for (const item of items) {
+                        if (newTask.title === item.title || newTask.title.startsWith(`${item.title}:`)) {
+                            return cat;
+                        }
+                    }
+                }
+                return null;
+            }, [newTask.title]);
+
+            useEffect(() => {
+                if (fixedCategory && newTask.type !== fixedCategory) {
+                    setNewTask(prev => ({ ...prev, type: fixedCategory }));
+                }
+            }, [fixedCategory]);
+
+            const [targets, setTargets] = useState(() => {
+                if (typeof window !== 'undefined') {
+                    const saved = localStorage.getItem('biology_planner_targets');
+                    return saved ? JSON.parse(saved) : { year1: 5, year2: 7 };
+                }
+                return { year1: 5, year2: 7 };
+            });
+
+            const [weeklyTopics, setWeeklyTopics] = useState(() => {
+                if (typeof window !== 'undefined') {
+                    const saved = localStorage.getItem('biology_planner_topics');
+                    return saved ? JSON.parse(saved) : {};
+                }
+                return {};
+            });
+
+            const [holidayWeeks, setHolidayWeeks] = useState(() => {
+                if (typeof window !== 'undefined') {
+                    const saved = localStorage.getItem('biology_planner_holidays');
+                    return saved ? JSON.parse(saved) : {};
+                }
+                return {}; 
+            });
+
+            const [ratings, setRatings] = useState(() => {
+                if (typeof window !== 'undefined') {
+                    return JSON.parse(localStorage.getItem('biology_plc_ratings')) || {};
+                }
+                return {};
+            });
+
+            useEffect(() => {
+                if (typeof window !== 'undefined') {
+                    localStorage.setItem('biology_planner_exam_date', examDate);
+                }
+                const exam = new Date(examDate);
+                const examYear = exam.getFullYear();
+                const startYear = examYear - 2; 
+                const startDate = new Date(startYear, 8, 15); 
+                const generatedWeeks = getWeeksBetween(startDate, exam);
+                setWeeks(generatedWeeks);
+                const now = new Date();
+                const activeWeek = generatedWeeks.find(w => now >= w.start && now <= w.end);
+                if (activeWeek) setCurrentWeekId(activeWeek.id);
+            }, [examDate]);
+
+            useEffect(() => {
+                if (typeof window !== 'undefined') {
+                    localStorage.setItem('biology_planner_tasks', JSON.stringify(tasks));
+                }
+            }, [tasks]);
+
+            useEffect(() => { if (typeof window !== 'undefined') localStorage.setItem('biology_planner_topics', JSON.stringify(weeklyTopics)); }, [weeklyTopics]);
+            useEffect(() => { if (typeof window !== 'undefined') localStorage.setItem('biology_planner_targets', JSON.stringify(targets)); }, [targets]);
+            useEffect(() => { if (typeof window !== 'undefined') localStorage.setItem('biology_planner_holidays', JSON.stringify(holidayWeeks)); }, [holidayWeeks]);
+            useEffect(() => { if (typeof window !== 'undefined') localStorage.setItem('biology_plc_ratings', JSON.stringify(ratings)); }, [ratings]);
+
+            const handleExport = () => {
+                const data = {
+                    examDate: localStorage.getItem('biology_planner_exam_date'),
+                    tasks: JSON.parse(localStorage.getItem('biology_planner_tasks') || '{}'),
+                    topics: JSON.parse(localStorage.getItem('biology_planner_topics') || '{}'),
+                    targets: JSON.parse(localStorage.getItem('biology_planner_targets') || '{"year1": 5, "year2": 7}'),
+                    holidays: JSON.parse(localStorage.getItem('biology_planner_holidays') || '{}'),
+                    ratings: JSON.parse(localStorage.getItem('biology_plc_ratings') || '{}'),
+                    reflections: JSON.parse(localStorage.getItem('biology_plc_reflections') || '{}')
+                };
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `biology_planner_backup_${new Date().toISOString().split('T')[0]}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            };
+
+            const handleImport = (event) => {
+                const file = event.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const data = JSON.parse(e.target.result);
+                        if (data.examDate) localStorage.setItem('biology_planner_exam_date', data.examDate);
+                        if (data.tasks) localStorage.setItem('biology_planner_tasks', JSON.stringify(data.tasks));
+                        if (data.topics) localStorage.setItem('biology_planner_topics', JSON.stringify(data.topics));
+                        if (data.targets) localStorage.setItem('biology_planner_targets', JSON.stringify(data.targets));
+                        if (data.holidays) localStorage.setItem('biology_planner_holidays', JSON.stringify(data.holidays));
+                        if (data.ratings) localStorage.setItem('biology_plc_ratings', JSON.stringify(data.ratings));
+                        if (data.reflections) localStorage.setItem('biology_plc_reflections', JSON.stringify(data.reflections));
+                        alert('Progress loaded successfully! The page will now reload.');
+                        window.location.reload();
+                    } catch (err) {
+                        alert('Failed to load file. Please check if it is a valid backup file.');
+                    }
+                };
+                reader.readAsText(file);
+            };
+
+            const handleAddTask = () => {
+                if (!newTask.title) return;
+                const duration = calculateDuration(newTask.start, newTask.end);
+                const taskEntry = { id: Date.now(), day: addTaskModal.day, slotLabel: addTaskModal.slotLabel, title: newTask.title, start: newTask.start, end: newTask.end, duration, type: newTask.type, completed: false };
+                setTasks(prev => ({ ...prev, [currentWeekId]: [...(prev[currentWeekId] || []), taskEntry] }));
+                setAddTaskModal({ open: false, day: null, slotLabel: null });
+                setNewTask({ title: '', start: '09:00', end: '10:00', type: 'AO1' });
+            };
+
+            const toggleTask = (taskId) => {
+                setTasks(prev => {
+                    const weekTasks = prev[currentWeekId] || [];
+                    return { ...prev, [currentWeekId]: weekTasks.map(t => t.id === taskId ? { ...t, completed: !t.completed } : t) };
+                });
+            };
+
+            const deleteTask = (taskId) => {
+                setTasks(prev => {
+                    const weekTasks = prev[currentWeekId] || [];
+                    return { ...prev, [currentWeekId]: weekTasks.filter(t => t.id !== taskId) };
+                });
+            };
+
+            const handleSuggestionClick = (item, category) => {
+                let title = item.title;
+                const topicId = weeklyTopics[currentWeekId];
+                if (topicId) {
+                    const topicList = [...TOPICS.YEAR_1, ...TOPICS.YEAR_2];
+                    const topic = topicList.find(t => t.id === topicId);
+                    if (topic) title = `${item.title}: ${topic.name}`;
+                }
+                setNewTask({ ...newTask, title, type: category });
+            };
+
+            const openGuide = (e, item) => {
+                e.stopPropagation();
+                setGuideModal({ open: true, topic: item.title });
+            };
+
+            const toggleHoliday = (weekId) => {
+                setHolidayWeeks(prev => ({ ...prev, [weekId]: !prev[weekId] }));
+            };
+
+            const currentWeekObj = weeks.find(w => w.id === currentWeekId) || weeks[0];
+            const isYear1 = currentWeekObj?.isYear1;
+            const isHoliday = holidayWeeks[currentWeekId];
+            const currentTemplate = isYear1 ? (isHoliday ? WEEKLY_TEMPLATES.YEAR_1.holiday : WEEKLY_TEMPLATES.YEAR_1.days) : (isHoliday ? WEEKLY_TEMPLATES.YEAR_2.holiday : WEEKLY_TEMPLATES.YEAR_2.days);
+            const currentTarget = isYear1 ? targets.year1 : targets.year2;
+            const currentTasks = tasks[currentWeekId] || [];
+            const currentHours = currentTasks.reduce((acc, t) => acc + (t.completed && t.type !== 'DIRECTED' ? t.duration : 0), 0);
+            const plannedHours = currentTasks.reduce((acc, t) => acc + (t.type !== 'DIRECTED' ? t.duration : 0), 0);
+            const currentTopicId = weeklyTopics[currentWeekId];
+            
+            const { earnedBadges, stats } = useMemo(() => calculateStats(tasks, weeks, targets, currentWeekId, ratings), [tasks, weeks, targets, currentWeekId, ratings]);
+
+            const getSlotIcon = (label) => {
+                if (label?.includes('Free Period')) return <Sun className="w-4 h-4 text-orange-500" />;
+                if (label?.includes('Evening')) return <Moon className="w-4 h-4 text-indigo-500" />;
+                if (label?.includes('Morning')) return <Coffee className="w-4 h-4 text-amber-600" />;
+                return <Clock className="w-4 h-4 text-gray-400" />;
+            };
+
+            const calculatePlcProgress = (topicKey) => {
+                const objectives = PLC_DATA[topicKey].flatMap(s => s.objectives);
+                if (!objectives.length) return 0;
+                const green = objectives.filter(obj => ratings[obj] === 'green').length;
+                return (green / objectives.length) * 100;
+            };
+
+            const days = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
+
+            return (
+                <div className="min-h-screen pb-20 lg:pb-0">
+                    <header className="bg-emerald-800 text-white p-4 shadow-lg sticky top-0 z-40">
+                        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+                            <div className="flex items-center gap-3">
+                                <Microscope className="w-8 h-8 text-emerald-300" />
+                                <div>
+                                    <h1 className="text-xl font-bold tracking-tight">AQA Biology Planner</h1>
+                                    <p className="text-emerald-200 text-xs hidden md:block">Plan • Track • Master</p>
+                                </div>
+                                <button onClick={() => setHowToOpen(true)} className="ml-2 p-1.5 bg-emerald-700 hover:bg-emerald-600 rounded-full text-emerald-100 transition-colors" title="How to Use">
+                                    <HelpCircle className="w-5 h-5" />
+                                </button>
+                            </div>
+                            <div className="flex items-center gap-4 md:gap-6 w-auto">
+                                <div className="flex flex-col items-end mr-2 md:mr-4">
+                                    <div className="text-xs text-emerald-200 uppercase font-bold tracking-wider hidden md:block">BioPoints</div>
+                                    <div className="text-xl font-bold flex items-center gap-1 text-yellow-300">
+                                        <Trophy className="w-5 h-5" /> {stats.totalScore}
+                                    </div>
+                                </div>
+                                <div className="flex-1 md:w-64 hidden sm:block">
+                                    <div className="flex justify-between text-xs mb-1">
+                                        <span>Target: {currentTarget}h</span>
+                                        <span className="font-bold">{currentHours}h Done</span>
+                                    </div>
+                                    <ProgressBar current={currentHours} target={currentTarget} colorClass={currentHours >= currentTarget ? "bg-emerald-300" : "bg-yellow-400"} />
+                                </div>
+                                <button onClick={() => setPlcOpen(true)} className="p-2 hover:bg-emerald-700 rounded-lg transition-colors flex items-center gap-2" title="Learning Checklist">
+                                    <ClipboardList className="w-5 h-5" />
+                                </button>
+                                <button onClick={() => setStatsOpen(true)} className="p-2 hover:bg-emerald-700 rounded-lg transition-colors flex items-center gap-2 relative">
+                                    <Award className="w-5 h-5" />
+                                    {earnedBadges.length > 0 && (
+                                        <span className="absolute -top-1 -right-1 bg-yellow-400 text-yellow-900 text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+                                            {earnedBadges.length}
+                                        </span>
+                                    )}
+                                </button>
+                                <button onClick={() => setSettingsOpen(true)} className="p-2 hover:bg-emerald-700 rounded-lg transition-colors">
+                                    <Settings className="w-5 h-5" />
+                                </button>
+                            </div>
+                        </div>
+                    </header>
+
+                    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-2 flex justify-around items-center lg:hidden z-50">
+                        <button onClick={() => setMobileTab('schedule')} className={`flex flex-col items-center gap-1 p-2 rounded-lg w-full ${mobileTab === 'schedule' ? 'text-emerald-600 bg-emerald-50' : 'text-gray-500'}`}>
+                            <CalendarIcon className="w-5 h-5" />
+                            <span className="text-[10px] font-bold">Schedule</span>
+                        </button>
+                        <button onClick={() => setMobileTab('topics')} className={`flex flex-col items-center gap-1 p-2 rounded-lg w-full ${mobileTab === 'topics' ? 'text-emerald-600 bg-emerald-50' : 'text-gray-500'}`}>
+                            <Layers className="w-5 h-5" />
+                            <span className="text-[10px] font-bold">Topics & PLC</span>
+                        </button>
+                    </div>
+
+                    <main className="max-w-7xl mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
+                        <div className={`lg:col-span-1 space-y-6 flex-col h-full ${mobileTab === 'topics' ? 'flex' : 'hidden lg:flex'}`}>
+                            <div className={`bg-white rounded-xl shadow-sm border p-4 ${isHoliday ? 'border-blue-300 bg-blue-50' : 'border-gray-100'}`}>
+                                <div className="flex items-center justify-between mb-4">
+                                    <h2 className="font-semibold text-gray-700 flex items-center gap-2">
+                                        <CalendarIcon className="w-4 h-4" /> Timeline
+                                    </h2>
+                                    <span className={`px-2 py-1 rounded text-xs font-bold ${isYear1 ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>
+                                        {isYear1 ? 'Year 1' : 'Year 2'}
+                                    </span>
+                                </div>
+                                <div className="flex items-center justify-between bg-white p-2 rounded-lg mb-4 shadow-sm border border-gray-100">
+                                    <button onClick={() => setCurrentWeekId(Math.max(1, currentWeekId - 1))} className="p-1 hover:bg-gray-200 rounded disabled:opacity-30" disabled={currentWeekId === 1}>
+                                        <ChevronLeft className="w-5 h-5" />
+                                    </button>
+                                    <div className="text-center">
+                                        <div className="font-bold text-gray-800 flex items-center justify-center gap-2">
+                                            Week {currentWeekId} {isHoliday && <Palmtree className="w-4 h-4 text-blue-500" />}
+                                        </div>
+                                        <div className="text-xs text-gray-500">
+                                            {currentWeekObj?.start.toLocaleDateString()} - {currentWeekObj?.end.toLocaleDateString()}
+                                        </div>
+                                    </div>
+                                    <button onClick={() => setCurrentWeekId(Math.min(weeks.length, currentWeekId + 1))} className="p-1 hover:bg-gray-200 rounded disabled:opacity-30" disabled={currentWeekId === weeks.length}>
+                                        <ChevronRight className="w-5 h-5" />
+                                    </button>
+                                </div>
+                                {isHoliday && <div className="text-xs text-blue-600 text-center font-semibold mb-2">College Holiday Mode Active</div>}
+                            </div>
+
+                            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex-none max-h-[350px]">
+                                <div className="mb-3 flex justify-between items-center">
+                                    <h3 className="font-bold text-gray-800 flex items-center gap-2">
+                                        <ClipboardList className="w-4 h-4 text-emerald-600" /> My Knowledge Progress
+                                    </h3>
+                                </div>
+                                <div className="space-y-3 h-[calc(100%-2rem)] overflow-y-auto pr-2 custom-scrollbar">
+                                    {Object.keys(PLC_DATA).map(topic => {
+                                        const progress = calculatePlcProgress(topic);
+                                        return (
+                                            <div key={topic} className="group cursor-pointer" onClick={() => setPlcOpen(true)}>
+                                                <div className="flex justify-between items-center mb-1">
+                                                    <span className="text-xs font-medium text-gray-700 truncate w-3/4" title={topic}>{topic}</span>
+                                                    <span className="text-[10px] font-bold text-emerald-600">{Math.round(progress)}%</span>
+                                                </div>
+                                                <div className="w-full bg-gray-100 rounded-full h-1.5">
+                                                    <div className="bg-emerald-500 h-1.5 rounded-full transition-all duration-500" style={{ width: `${progress}%` }}></div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+
+                            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex-1 min-h-0 flex flex-col">
+                                <div className="mb-3">
+                                    <h3 className="font-bold text-gray-800 flex items-center gap-2">
+                                        <BrainCircuit className="w-4 h-4 text-emerald-600" /> Set Teaching Sequence
+                                    </h3>
+                                    <p className="text-[10px] text-gray-500">Click a topic to set it as this week's focus.</p>
+                                </div>
+                                <div className="space-y-2 overflow-y-auto pr-2 custom-scrollbar flex-1">
+                                    {(isYear1 ? TOPICS.YEAR_1 : TOPICS.YEAR_2).map((topic, idx) => {
+                                        const isSelected = currentTopicId === topic.id;
+                                        return (
+                                            <div key={topic.id} onClick={() => setWeeklyTopics(prev => ({...prev, [currentWeekId]: topic.id}))} className={`p-2 rounded border text-sm cursor-pointer transition-all ${isSelected ? 'bg-emerald-100 border-emerald-500 ring-1 ring-emerald-500' : 'bg-white border-gray-200 hover:border-emerald-300 hover:bg-emerald-50'}`}>
+                                                <div className="flex justify-between items-center mb-1">
+                                                    <span className={`text-[10px] uppercase font-bold ${isSelected ? 'text-emerald-800' : 'text-gray-500'}`}>Sequence {idx + 1}</span>
+                                                    {isSelected && <CheckCircle2 className="w-3 h-3 text-emerald-600" />}
+                                                </div>
+                                                <div className="font-bold text-gray-800">{topic.code} {topic.name}</div>
+                                                <div className="text-gray-600 text-xs mt-1">{topic.focus}</div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className={`lg:col-span-3 space-y-6 ${mobileTab === 'schedule' ? 'block' : 'hidden lg:block'}`}>
+                            <div className={`lg:hidden bg-white rounded-xl shadow-sm border p-4 mb-6 ${isHoliday ? 'border-blue-300 bg-blue-50' : 'border-gray-100'}`}>
+                                <div className="flex items-center justify-between mb-4">
+                                    <h2 className="font-semibold text-gray-700 flex items-center gap-2"><CalendarIcon className="w-4 h-4" /> Timeline</h2>
+                                    <span className={`px-2 py-1 rounded text-xs font-bold ${isYear1 ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>{isYear1 ? 'Year 1' : 'Year 2'}</span>
+                                </div>
+                                <div className="flex items-center justify-between bg-white p-2 rounded-lg mb-4 shadow-sm border border-gray-100">
+                                    <button onClick={() => setCurrentWeekId(Math.max(1, currentWeekId - 1))} className="p-1 hover:bg-gray-200 rounded disabled:opacity-30" disabled={currentWeekId === 1}><ChevronLeft className="w-5 h-5" /></button>
+                                    <div className="text-center">
+                                        <div className="font-bold text-gray-800 flex items-center justify-center gap-2">Week {currentWeekId} {isHoliday && <Palmtree className="w-4 h-4 text-blue-500" />}</div>
+                                        <div className="text-xs text-gray-500">{currentWeekObj?.start.toLocaleDateString()} - {currentWeekObj?.end.toLocaleDateString()}</div>
+                                    </div>
+                                    <button onClick={() => setCurrentWeekId(Math.min(weeks.length, currentWeekId + 1))} className="p-1 hover:bg-gray-200 rounded disabled:opacity-30" disabled={currentWeekId === weeks.length}><ChevronRight className="w-5 h-5" /></button>
+                                </div>
+                            </div>
+
+                            <div className="flex justify-between items-center">
+                                <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                                    Weekly Schedule {isHoliday && <span className="text-sm font-normal text-blue-600 bg-blue-100 px-2 py-1 rounded-full flex items-center gap-1"><Palmtree className="w-3 h-3"/> Holiday</span>}
+                                </h2>
+                                <div className="text-sm text-gray-500 bg-white px-3 py-1 rounded-full shadow-sm border border-gray-200">
+                                    <span className="text-gray-400">Planned:</span> <span className="font-semibold text-gray-700">{plannedHours}h</span>
+                                    <span className="mx-2 text-gray-300">|</span>
+                                    <span className="text-emerald-600 font-bold">Logged: {currentHours}h</span>
+                                </div>
+                            </div>
+
+                            <div className="flex flex-col gap-4">
+                                {days.map(day => {
+                                    let slotsConfig = [];
+                                    if (isHoliday) { slotsConfig = currentTemplate['AllDays'] || []; } else { slotsConfig = currentTemplate[day] || []; }
+                                    return (
+                                        <div key={day} className={`bg-white rounded-xl shadow-sm border flex flex-row overflow-hidden min-h-[150px] ${isHoliday ? 'border-blue-100' : 'border-gray-100'}`}>
+                                            <div className={`w-14 flex items-center justify-center border-r ${isHoliday ? 'bg-blue-50 border-blue-100' : 'bg-gray-50 border-gray-100'}`}>
+                                                <span className="font-bold text-gray-600 text-2xl -rotate-90 transform whitespace-nowrap tracking-widest">{day.toUpperCase()}</span>
+                                            </div>
+                                            <div className="flex-1 p-4 grid gap-4">
+                                                {slotsConfig.map((slot, idx) => {
+                                                    const slotTasks = currentTasks.filter(t => t.day === day && t.slotLabel === slot.label);
+                                                    return (
+                                                        <div key={idx} className="flex flex-col gap-2">
+                                                            <div className="flex justify-between items-center pb-1 border-b border-gray-100">
+                                                                <span className="text-xs uppercase font-bold text-gray-500 flex items-center gap-2">{getSlotIcon(slot.label)} {slot.label}</span>
+                                                                <button onClick={() => {
+                                                                    setAddTaskModal({ open: true, day, slotLabel: slot.label });
+                                                                    let initialTitle = slot.activity;
+                                                                    if (currentTopicId) {
+                                                                        const topicList = [...TOPICS.YEAR_1, ...TOPICS.YEAR_2];
+                                                                        const topic = topicList.find(t => t.id === currentTopicId);
+                                                                        if (topic && slot.activity.includes('Topic')) { initialTitle = slot.activity.replace('Topic', topic.name); } 
+                                                                        else if (topic) { initialTitle = `${slot.activity}: ${topic.name}`; }
+                                                                    }
+                                                                    setNewTask(prev => ({ ...prev, title: initialTitle, type: slot.type }));
+                                                                }} className="text-emerald-600 hover:bg-emerald-100 rounded-full p-1 transition-colors flex items-center gap-1 text-xs font-medium">
+                                                                    <Plus className="w-3 h-3" /> Add Task
+                                                                </button>
+                                                            </div>
+                                                            {slotTasks.length === 0 && (
+                                                                <div className="border border-dashed border-gray-200 rounded-lg p-3 flex flex-col justify-center items-center text-center hover:bg-gray-50 transition-colors cursor-pointer group" onClick={() => {
+                                                                    setAddTaskModal({ open: true, day, slotLabel: slot.label });
+                                                                    let initialTitle = slot.activity;
+                                                                    if (currentTopicId) {
+                                                                        const topicList = [...TOPICS.YEAR_1, ...TOPICS.YEAR_2];
+                                                                        const topic = topicList.find(t => t.id === currentTopicId);
+                                                                        if (topic) initialTitle = `${slot.activity}: ${topic.name}`;
+                                                                    }
+                                                                    setNewTask(prev => ({ ...prev, title: initialTitle, type: slot.type }));
+                                                                }}>
+                                                                    <p className="text-xs font-bold text-emerald-600 mb-1 group-hover:text-emerald-700">Suggested: {slot.type}</p>
+                                                                    <p className="text-xs text-gray-400 group-hover:text-gray-500">{slot.activity}</p>
+                                                                </div>
+                                                            )}
+                                                            <div className="space-y-2">
+                                                                {slotTasks.map(task => (
+                                                                    <div key={task.id} className={`p-3 rounded-lg border text-sm group relative transition-all flex items-center gap-3 ${task.completed ? 'bg-emerald-50 border-emerald-200' : 'bg-white border-gray-200 shadow-sm border-l-4 border-l-gray-300'}`}>
+                                                                        <button onClick={() => toggleTask(task.id)} title={task.completed ? "Mark Incomplete" : "Mark Complete"} className={`rounded-full p-1 transition-colors flex-shrink-0 ${task.completed ? 'text-emerald-600 bg-emerald-100' : 'text-gray-300 hover:text-emerald-500 hover:bg-gray-100'}`}>
+                                                                            {task.completed ? <CheckCircle2 className="w-5 h-5" /> : <CheckSquare className="w-5 h-5" />}
+                                                                        </button>
+                                                                        <div className={`flex-1 overflow-hidden ${task.completed ? 'opacity-50' : 'opacity-100'}`}>
+                                                                            <div className="font-semibold text-gray-800 truncate">{task.title}</div>
+                                                                            <div className="text-xs text-gray-500 flex gap-2"><span>{task.start}-{task.end}</span><span className="bg-gray-100 px-1.5 rounded text-gray-600">{task.type}</span></div>
+                                                                        </div>
+                                                                        <button onClick={() => deleteTask(task.id)} className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600 hover:bg-red-50 p-1.5 rounded transition-all"><Trash2 className="w-4 h-4" /></button>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                            <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 flex gap-3 items-start text-sm text-blue-800">
+                                <AlertCircle className="w-5 h-5 shrink-0" />
+                                <div>
+                                    <p className="font-bold">Research Strategy Applied:</p>
+                                    <p>{isYear1 ? "Strategy: Free Periods use 'Active Recall' (Flashcards/Blurting). Evenings are for 'Deep Consoldiation'. Holidays mimic weekends for intensive catch-up." : "Strategy: Year 2 Free Periods focus on 'Skills'. Evenings are for 'Essay Planning'. Holidays allow full mock exam simulations."}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </main>
+
+                    <GuideModal isOpen={guideModal.open} onClose={() => setGuideModal({ open: false, topic: null })} guide={ACTIVITY_GUIDES[guideModal.topic]} title={guideModal.topic} />
+                    <HowToModal isOpen={howToOpen} onClose={() => setHowToOpen(false)} />
+                    <PlcDashboard isOpen={plcOpen} onClose={() => setPlcOpen(false)} ratings={ratings} setRatings={setRatings} />
+                    <Modal isOpen={addTaskModal.open} onClose={() => setAddTaskModal({ open: false, day: null, slotLabel: null })} title={`Plan: ${addTaskModal.day} (${addTaskModal.slotLabel})`}>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-4">
+                                <div><label className="block text-sm font-bold text-gray-700 mb-1">Activity Title</label><input type="text" value={newTask.title} onChange={(e) => setNewTask({...newTask, title: e.target.value})} className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-emerald-500 outline-none" /></div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div><label className="block text-sm font-bold text-gray-700 mb-1">Start</label><input type="time" value={newTask.start} onChange={(e) => setNewTask({...newTask, start: e.target.value})} className="w-full border border-gray-300 rounded-lg p-2" /></div>
+                                    <div><label className="block text-sm font-bold text-gray-700 mb-1">End</label><input type="time" value={newTask.end} onChange={(e) => setNewTask({...newTask, end: e.target.value})} className="w-full border border-gray-300 rounded-lg p-2" /></div>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-gray-700 mb-1">Skill Focus {fixedCategory && (<span className="ml-2 text-xs font-normal text-amber-600 flex items-center gap-1 inline-flex"><Lock className="w-3 h-3" /> Fixed</span>)}</label>
+                                    <select value={newTask.type} onChange={(e) => setNewTask({...newTask, type: e.target.value})} className={`w-full border border-gray-300 rounded-lg p-2 ${fixedCategory ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''}`} disabled={!!fixedCategory}>
+                                        <option value="AO1">Recall / Knowledge (1x Points)</option>
+                                        <option value="AO2">Application (1.2x Points)</option>
+                                        <option value="AO3">Analysis / Data (1.5x Points)</option>
+                                        <option value="Practical">Practical Skills (+50 Bonus)</option>
+                                        <option value="Essay">Essay / Synoptic (1.5x Points)</option>
+                                        <option value="DIRECTED">Directed Study (0.5x Points)</option>
+                                    </select>
+                                </div>
+                                <div className="pt-4"><button onClick={handleAddTask} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center gap-2"><Save className="w-4 h-4" /> Save to {addTaskModal.slotLabel}</button></div>
+                            </div>
+                            <div className="bg-gray-50 rounded-xl p-4 border border-gray-100 max-h-[400px] overflow-y-auto custom-scrollbar">
+                                <h3 className="font-bold text-gray-700 mb-3 flex items-center gap-2"><Target className="w-4 h-4 text-emerald-600" /> Suggested Activities</h3>
+                                <div className="space-y-4">
+                                    {Object.entries(ACTIVITY_MENU).map(([category, items]) => (
+                                        <div key={category}>
+                                            <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 border-b pb-1">{category}</h4>
+                                            <div className="space-y-2">
+                                                {items.map((item, idx) => (
+                                                    <button key={idx} onClick={() => handleSuggestionClick(item, category)} className="w-full text-left p-2 bg-white rounded border border-gray-200 hover:border-emerald-400 hover:shadow-sm transition-all group relative flex items-center justify-between">
+                                                        <div>
+                                                            <div className="flex items-center gap-2 font-semibold text-gray-800 text-sm"><span>{item.icon}</span> {item.title}</div>
+                                                            <div className="text-xs text-gray-500 mt-1 pl-6 group-hover:text-gray-700">{item.desc}</div>
+                                                        </div>
+                                                        <div onClick={(e) => openGuide(e, item)} className="p-2 text-gray-300 hover:text-emerald-600 transition-colors" title="How to do this?"><Info className="w-4 h-4" /></div>
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </Modal>
+
+                    <Modal isOpen={statsOpen} onClose={() => setStatsOpen(false)} title="Progress & Achievements" maxWidth="max-w-5xl">
+                        <div className="space-y-8">
+                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-100 flex items-center gap-4">
+                                    <Trophy className="w-8 h-8 text-yellow-500" />
+                                    <div><div className="text-sm text-yellow-800 font-semibold">BioPoints</div><div className="text-2xl font-bold text-yellow-900">{stats.totalScore}</div></div>
+                                </div>
+                                <div className="bg-emerald-50 p-4 rounded-lg border border-emerald-100 flex items-center gap-4">
+                                    <Activity className="w-8 h-8 text-emerald-600" />
+                                    <div><div className="text-sm text-emerald-800 font-semibold">Total Logged</div><div className="text-2xl font-bold text-emerald-900">{stats.totalHours.toFixed(1)} hrs</div></div>
+                                </div>
+                                <div className="bg-blue-50 p-4 rounded-lg border border-blue-100 flex items-center gap-4">
+                                    <TrendingUp className="w-8 h-8 text-blue-600" />
+                                    <div><div className="text-sm text-blue-800 font-semibold">Phase</div><div className="text-lg font-bold text-blue-900">{isYear1 ? 'Foundation (Y1)' : 'Mastery (Y2)'}</div></div>
+                                </div>
+                                <div className="bg-purple-50 p-4 rounded-lg border border-purple-100 flex items-center gap-4">
+                                    <Target className="w-8 h-8 text-purple-600" />
+                                    <div><div className="text-sm text-purple-800 font-semibold">Weekly Target</div><div className="text-2xl font-bold text-purple-900">{currentTarget} hrs</div></div>
+                                </div>
+                            </div>
+
+                            <div className="bg-white border rounded-lg p-5 shadow-sm">
+                                <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2 text-lg"><Award className="w-6 h-6 text-yellow-500" /> Achievements</h3>
+                                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                                    {BADGE_DEFINITIONS.map(badge => {
+                                        const isEarned = earnedBadges.includes(badge.id);
+                                        const Icon = badge.icon;
+                                        return (
+                                            <div key={badge.id} className={`relative p-3 rounded-xl border flex flex-col items-center text-center transition-all ${isEarned ? 'bg-yellow-50 border-yellow-200 shadow-sm' : 'bg-gray-50 border-gray-100 opacity-60 grayscale'}`}>
+                                                <div className={`p-3 rounded-full mb-2 ${isEarned ? 'bg-white shadow text-yellow-600' : 'bg-gray-200 text-gray-400'}`}><Icon className="w-6 h-6" /></div>
+                                                <div className="font-bold text-sm text-gray-800">{badge.name}</div>
+                                                <div className="text-[10px] text-gray-500 mt-1">{badge.desc}</div>
+                                                {isEarned && (<div className="absolute -top-2 -right-2"><CheckCircle2 className="w-5 h-5 text-green-500 bg-white rounded-full" /></div>)}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+
+                            <div className="bg-white border rounded-lg p-4">
+                                <h3 className="font-bold text-gray-700 mb-4 flex items-center gap-2"><BarChart3 className="w-5 h-5 text-gray-500" /> Longitudinal Progress (2-Year Course)</h3>
+                                <ProgressChart weeks={weeks} tasks={tasks} targets={targets} holidayWeeks={holidayWeeks} />
+                            </div>
+                        </div>
+                    </Modal>
+
+                    <Modal isOpen={settingsOpen} onClose={() => setSettingsOpen(false)} title="Configuration">
+                        <div className="space-y-6">
+                            <div className="bg-emerald-50 p-4 rounded-lg border border-emerald-100"><h3 className="font-bold text-emerald-800 mb-2">Setup</h3><p className="text-sm text-emerald-700">Enter your final Paper 1 exam date. The system will reverse-engineer your 2-year plan from mid-September.</p></div>
+                            <div><label className="block text-sm font-bold text-gray-700 mb-1">Target Exam Date</label><input type="date" value={examDate} onChange={(e) => setExamDate(e.target.value)} className="w-full border border-gray-300 rounded-lg p-2" /></div>
+                            
+                            <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                                <h3 className="font-bold text-blue-800 mb-2">Data Management</h3>
+                                <p className="text-sm text-blue-700 mb-4">Save your progress to transfer between devices or keep a backup.</p>
+                                <div className="flex gap-4">
+                                    <button onClick={handleExport} className="flex-1 flex items-center justify-center gap-2 bg-white border border-blue-300 text-blue-700 py-2 px-4 rounded-lg hover:bg-blue-50 transition-colors font-medium">
+                                        <Download className="w-4 h-4" /> Save Progress
+                                    </button>
+                                    <label className="flex-1 flex items-center justify-center gap-2 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium cursor-pointer">
+                                        <Upload className="w-4 h-4" /> Load Progress
+                                        <input type="file" accept=".json" onChange={handleImport} className="hidden" />
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4 pt-4 border-t">
+                                <div><label className="block text-sm font-bold text-gray-700 mb-1">Year 1 Weekly Target (Hours)</label><input type="number" min="1" max="20" value={targets.year1} onChange={(e) => setTargets({...targets, year1: parseInt(e.target.value) || 0})} className="w-full border border-gray-300 rounded-lg p-2" /></div>
+                                <div><label className="block text-sm font-bold text-gray-700 mb-1">Year 2 Weekly Target (Hours)</label><input type="number" min="1" max="20" value={targets.year2} onChange={(e) => setTargets({...targets, year2: parseInt(e.target.value) || 0})} className="w-full border border-gray-300 rounded-lg p-2" /></div>
+                            </div>
+                            <div className="pt-4 border-t">
+                                <label className="block text-sm font-bold text-gray-700 mb-2">Mark College Holidays</label>
+                                <div className="text-xs text-gray-500 mb-3">Holiday weeks use an expanded schedule (3 slots/day) for intensive revision.</div>
+                                <div className="h-40 overflow-y-auto border rounded p-2 grid grid-cols-3 gap-2">
+                                    {weeks.map(week => (
+                                        <button key={week.id} onClick={() => toggleHoliday(week.id)} className={`text-xs p-2 rounded border text-center ${holidayWeeks[week.id] ? 'bg-blue-100 border-blue-400 text-blue-800 font-bold' : 'bg-gray-50 border-gray-100 text-gray-600'}`}>
+                                            Week {week.id}
+                                            <div className="text-[9px]">{week.start.toLocaleDateString(undefined, {month:'short', day:'numeric'})}</div>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                            <div className="flex justify-end pt-4"><button onClick={() => setSettingsOpen(false)} className="bg-emerald-600 text-white px-4 py-2 rounded-lg font-bold">Save & Close</button></div>
+                        </div>
+                    </Modal>
+                </div>
+            );
+        }
+
+        const root = createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
